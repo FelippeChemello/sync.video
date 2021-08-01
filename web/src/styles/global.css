@@ -1,0 +1,44 @@
+@font-face {
+    font-family: 'PSBI';
+    src: url('../../public/assets/Product\ Sans\ Bold\ Italic.ttf');
+    font-style: italic;
+    font-weight: 600;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PSB';
+    src: url('../../public/assets/Product Sans Bold.ttf');
+    font-style: medium;
+    font-weight: 600;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PSI';
+    src: url('../../public/assets/Product Sans Italic.ttf');
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PS';
+    src: url('../../public/assets/Product\ Sans\ Regular.ttf');
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+    font-family: PS;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+* {
+    box-sizing: border-box;
+}
