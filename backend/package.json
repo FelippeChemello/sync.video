@@ -6,7 +6,7 @@
         "uuid": "^8.3.2"
     },
     "scripts": {
-        "dev": "ts-node-dev --respawn --transpile ./src/server.ts",
+        "dev": "ts-node-dev --transpile-only ./src/server.ts",
         "prod": "tsc && node ./dist/server.js"
     },
     "name": "sync-backend",

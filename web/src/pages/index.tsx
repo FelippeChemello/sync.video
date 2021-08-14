@@ -1,10 +1,11 @@
-import Head from 'next/head';
 import { useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useEffect } from 'react';
-import Image from 'next/image';
+import Link from 'next/link';
 
 import { Main } from '../styles/home';
+
+import I18Button from '../components/i18button';
 
 export default function Home() {
     const [wsClient, setWsClient] = useState<Socket>();
@@ -28,20 +29,7 @@ export default function Home() {
 
     return (
         <>
-            <Head>
-                <link
-                    rel="preload"
-                    href="assets/Product Sans Regular.ttf"
-                    as="font"
-                    crossOrigin=""
-                />
-                <title>Sync video player with friends</title>
-                <meta
-                    name="description"
-                    content="Sync video player with friends"
-                />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
+            <I18Button />
             <Main>
                 <h1>
                     Watching videos with friends <span>made easy</span>
@@ -53,8 +41,12 @@ export default function Home() {
                 </h2>
 
                 <div>
-                    <button className="login">Sign up</button>
-                    <button>Sign in</button>
+                    <button className="login">
+                        <Link href="signup">Sign up</Link>
+                    </button>
+                    <button>
+                        <Link href="signup">Sign in</Link>
+                    </button>
                 </div>
 
                 <img src="assets/home.svg" />
