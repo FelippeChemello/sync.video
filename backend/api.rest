@@ -1,0 +1,24 @@
+@baseUrl = http://localhost:3001
+
+### Create a new user
+@name = createNewUser
+
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+    "name": "Felippe Jaqson Chemello",
+    "email": "felippe@codestack.me",
+    "password": "123456"
+}
+
+### Authenticate user
+@name = authenticateUser
+
+POST {{baseUrl}}/sessions
+Content-Type: application/json
+
+{
+    "email": "felippe@codestack.me",
+    "password": "123456"
+}

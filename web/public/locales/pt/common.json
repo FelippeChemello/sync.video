@@ -1,3 +1,8 @@
 {
-    "signup-title": "Cadastre-se"
+    "signup-title": "Cadastre-se",
+    "password": "Senha",
+    "forgot-password": "Esqueceu sua senha?",
+    "create-account": "Criar conta",
+    "or": "ou",
+    "login-title": "Acessar"
 }

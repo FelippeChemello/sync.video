@@ -13,6 +13,8 @@ export default function Home() {
     useEffect(() => {
         const socketIo = io('ws://localhost:3001');
 
+        console.log(socketIo);
+
         setWsClient(socketIo);
     }, []);
 
@@ -45,7 +47,7 @@ export default function Home() {
                         <Link href="signup">Sign up</Link>
                     </button>
                     <button>
-                        <Link href="signup">Sign in</Link>
+                        <Link href="signin">Sign in</Link>
                     </button>
                 </div>
 

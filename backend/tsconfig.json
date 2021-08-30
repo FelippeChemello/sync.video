@@ -1,16 +1,19 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "es5",
         "module": "commonjs",
-        "outDir": "./dist/server",
+        "outDir": "./dist",
+        "rootDir": "./src",
         "strict": true,
-        "sourceMap": true,
-        "typeRoots": [
-            "node_modules/@types"
-        ]
-    },
-    "exclude": [
-        "dist",
-        "node_modules"
-    ]
+        "noImplicitAny": false,
+        "strictPropertyInitialization": false,
+        "baseUrl": "./src",
+        "allowJs": true,
+        "types": ["node", "@types/jest"],
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
+    }
 }

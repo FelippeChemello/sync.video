@@ -3,6 +3,7 @@
 # Ideias
 
 - Sincroniza com websocket
+- Opção de sincronizar por play/pause ou playback speed
 - Investigar uso GRPC
 - MySQL -> Usuários | Autentiação | Free e Premium 
 - MongoDB -> Sala (Usuários [owner e guest] | Videos | Chat)
@@ -10,3 +11,4 @@
 - Chat
 - Clientes: Site e Extensão Chrome
   
+- Easter egg: Tetris multiplayer (https://www.youtube.com/watch?v=RoRlXxeozbQ)

@@ -15,7 +15,7 @@ import {
     Content,
     Background,
     AnimationContainer,
-} from '../styles/signup';
+} from '../styles/signin';
 
 interface SignInFormData {
     email: string;
@@ -45,16 +45,15 @@ const SignIn: React.FC = () => {
     return (
         <Container>
             <I18Button />
-            <Background />
             <Content>
-                <Blob right={50} top={-50} />
-                <Blob left={50} bottom={300} width={200} height={250} />
-                <Blob right={-50} bottom={-50} />
+                <Blob left={-50} top={100} />
+                <Blob right={50} top={300} width={200} height={250} />
+                <Blob left={150} bottom={50} />
                 <AnimationContainer>
                     <img src="/assets/logo.png" alt="GoBarber" />
 
                     <form>
-                        <h1>{t('signup-title')}</h1>
+                        <h1>{t('login-title')}</h1>
 
                         <input placeholder="E-mail" name="email" />
 
@@ -66,7 +65,7 @@ const SignIn: React.FC = () => {
 
                         <button type="submit">
                             <FiLogIn />
-                            {t('signup-title')}
+                            {t('login-title')}
                         </button>
 
                         <Link href="/forgot-password">
@@ -76,9 +75,10 @@ const SignIn: React.FC = () => {
 
                     <Separator text={t('or')} color="#a1b2cd" distance={32} />
 
-                    <Link href="/signin">{t('login-title')}</Link>
+                    <Link href="/signup">{t('create-account')}</Link>
                 </AnimationContainer>
             </Content>
+            <Background />
         </Container>
     );
 };

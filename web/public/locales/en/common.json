@@ -1,3 +1,8 @@
 {
-    "signup-title": "Sign Up"
+    "signup-title": "Sign Up",
+    "password": "Password",
+    "forgot-password": "Forgot your password?",
+    "create-account": "Create account",
+    "or": "or",
+    "login-title": "Login"
 }
