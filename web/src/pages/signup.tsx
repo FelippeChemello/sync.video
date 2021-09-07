@@ -1,10 +1,12 @@
-import { useCallback } from 'react';
 import Link from 'next/link';
-import * as Yup from 'yup';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-
+import { useForm } from 'react-hook-form';
 import { FiLogIn } from 'react-icons/fi';
+
+import api from '../services/api';
+import { useAuth } from '../hooks/Auth';
+import { useToast } from '../hooks/Toast';
 
 import Blob from '../components/blob';
 import I18Button from '../components/i18button';
@@ -17,30 +19,38 @@ import {
     AnimationContainer,
 } from '../styles/signup';
 
-interface SignInFormData {
+interface FormInputs {
+    name: string;
     email: string;
     password: string;
 }
 
-const SignIn: React.FC = () => {
+const SignUp: React.FC = () => {
     const { t } = useTranslation('common');
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<FormInputs>();
+    const { signIn } = useAuth();
+    const { addToast } = useToast();
 
-    const handleSubmit = useCallback(async (data: SignInFormData) => {
+    const formSubmit = handleSubmit(async ({ email, name, password }) => {
         try {
-            const schema = Yup.object().shape({
-                email: Yup.string()
-                    .required('E-mail obrigatório')
-                    .email('Digite um e-mail válido'),
-                password: Yup.string().required('Senha obrigatória'),
+            await api.post('users', { email, name, password });
+            addToast({
+                title: t('signup-success'),
+                description: t('signup-description-success'),
+                type: 'success',
             });
-
-            await schema.validate(data, {
-                abortEarly: false,
-            });
+            await signIn({ email, password });
         } catch (err) {
-            console.error(err);
+            addToast({
+                title: t('signup-error'),
+                type: 'error',
+            });
         }
-    }, []);
+    });
 
     return (
         <Container>
@@ -53,16 +63,42 @@ const SignIn: React.FC = () => {
                 <AnimationContainer>
                     <img src="/assets/logo.png" alt="GoBarber" />
 
-                    <form>
+                    <form onSubmit={formSubmit}>
                         <h1>{t('signup-title')}</h1>
 
-                        <input placeholder="E-mail" name="email" />
+                        <input
+                            placeholder={t('name')}
+                            name="name"
+                            {...register('name', { required: true })}
+                        />
+                        {<span>&nbsp; {errors.name && t('name-invalid')}</span>}
+
+                        <input
+                            placeholder="E-mail"
+                            name="email"
+                            {...register('email', { required: true })}
+                        />
+                        {
+                            <span>
+                                &nbsp; {errors.email && t('email-invalid')}
+                            </span>
+                        }
 
                         <input
                             type="password"
                             placeholder={t('password')}
                             name="password"
+                            {...register('password', {
+                                required: true,
+                                minLength: 8,
+                            })}
                         />
+                        {
+                            <span>
+                                &nbsp;
+                                {errors.password && t('password-invalid')}
+                            </span>
+                        }
 
                         <button type="submit">
                             <FiLogIn />
@@ -89,4 +125,4 @@ export const getStaticProps = async ({ locale }) => ({
     },
 });
 
-export default SignIn;
+export default SignUp;

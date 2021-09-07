@@ -2,6 +2,8 @@ import Head from 'next/head';
 import { AppProps } from 'next/app';
 import { appWithTranslation } from 'next-i18next';
 
+import AppProvider from '../hooks';
+
 import '../styles/global.css';
 
 const App = ({ Component, pageProps }: AppProps) => {
@@ -21,7 +23,9 @@ const App = ({ Component, pageProps }: AppProps) => {
                 />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <Component {...pageProps} />
+            <AppProvider>
+                <Component {...pageProps} />
+            </AppProvider>
         </>
     );
 };

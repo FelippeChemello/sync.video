@@ -62,9 +62,10 @@ export const AnimationContainer = styled.div`
 
         input,
         button {
-            margin: 1rem 0.5rem;
+            margin: 1rem 0.5rem 0;
             padding: 0.75rem;
             border-radius: 0.5rem;
+            outline: none;
         }
 
         input {
@@ -73,6 +74,18 @@ export const AnimationContainer = styled.div`
             &::placeholder {
                 color: #a1b2cd;
             }
+
+            &:focus,
+            &:active {
+                border-color: #3485ff;
+            }
+        }
+
+        span {
+            margin: 0 0.8rem;
+            text-align: left;
+            font-size: 0.8rem;
+            color: red;
         }
 
         button {

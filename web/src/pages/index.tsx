@@ -1,6 +1,3 @@
-import { useState } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { useEffect } from 'react';
 import Link from 'next/link';
 
 import { Main } from '../styles/home';
@@ -8,27 +5,6 @@ import { Main } from '../styles/home';
 import I18Button from '../components/i18button';
 
 export default function Home() {
-    const [wsClient, setWsClient] = useState<Socket>();
-
-    useEffect(() => {
-        const socketIo = io('ws://localhost:3001');
-
-        console.log(socketIo);
-
-        setWsClient(socketIo);
-    }, []);
-
-    useEffect(() => {
-        if (wsClient) {
-            wsClient.connect();
-            wsClient.on('status', msg => console.log(msg));
-
-            window.onunload = () => {
-                wsClient.disconnect();
-            };
-        }
-    }, [wsClient]);
-
     return (
         <>
             <I18Button />

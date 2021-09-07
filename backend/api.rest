@@ -1,7 +1,8 @@
 @baseUrl = http://localhost:3001
+@token = {{authenticateUser.response.body.token}}
 
 ### Create a new user
-@name = createNewUser
+# @name createUser
 
 POST {{baseUrl}}/users
 Content-Type: application/json
@@ -13,7 +14,7 @@ Content-Type: application/json
 }
 
 ### Authenticate user
-@name = authenticateUser
+# @name authenticateUser
 
 POST {{baseUrl}}/sessions
 Content-Type: application/json
@@ -22,3 +23,10 @@ Content-Type: application/json
     "email": "felippe@codestack.me",
     "password": "123456"
 }
+
+### Get info from authenticated user
+@name = getUser
+
+GET {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{token}}

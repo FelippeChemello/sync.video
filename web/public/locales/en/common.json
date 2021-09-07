@@ -1,8 +1,17 @@
 {
     "signup-title": "Sign Up",
+    "signup-success": "SignUp success",
+    "signup-description-success": "Logging in",
+    "signup-error": "E-mail already registered",
+    "signin-error": "E-mail or Password incorrect",
+    "Signin-success":"Login success",
     "password": "Password",
     "forgot-password": "Forgot your password?",
     "create-account": "Create account",
     "or": "or",
-    "login-title": "Login"
+    "login-title": "Login",
+    "name": "Name",
+    "name-invalid": "Name is required",
+    "email-invalid": "E-mail is invalid",
+    "password-invalid": "Password minimum length 8 characters"
 }

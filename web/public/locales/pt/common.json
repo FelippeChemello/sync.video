@@ -1,8 +1,15 @@
 {
     "signup-title": "Cadastre-se",
+    "signup-success": "Cadastro realizado com sucesso",
+    "signup-description-success": "Efetuando login",
+    "signup-error": "E-mail já cadastrado",
     "password": "Senha",
     "forgot-password": "Esqueceu sua senha?",
     "create-account": "Criar conta",
     "or": "ou",
-    "login-title": "Acessar"
+    "login-title": "Acessar",
+    "name": "Nome",
+    "name-invalid": "Nome inválido",
+    "email-invalid": "E-mail invalido",
+    "password-invalid": "Senha deve possuir no mínimo 8 caractéres"
 }
