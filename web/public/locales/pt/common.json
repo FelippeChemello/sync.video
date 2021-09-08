@@ -11,5 +11,7 @@
     "name": "Nome",
     "name-invalid": "Nome inválido",
     "email-invalid": "E-mail invalido",
-    "password-invalid": "Senha deve possuir no mínimo 8 caractéres"
+    "password-invalid": "Senha deve possuir no mínimo 8 caractéres",
+    "go-premium": "Torne-se Premium",
+    "logout": "Sair"
 }

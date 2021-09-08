@@ -4,7 +4,7 @@
     "signup-description-success": "Logging in",
     "signup-error": "E-mail already registered",
     "signin-error": "E-mail or Password incorrect",
-    "Signin-success":"Login success",
+    "signin-success": "Login success",
     "password": "Password",
     "forgot-password": "Forgot your password?",
     "create-account": "Create account",
@@ -13,5 +13,7 @@
     "name": "Name",
     "name-invalid": "Name is required",
     "email-invalid": "E-mail is invalid",
-    "password-invalid": "Password minimum length 8 characters"
+    "password-invalid": "Password minimum length 8 characters",
+    "go-premium": "Go Premium",
+    "logout": "Logout"
 }

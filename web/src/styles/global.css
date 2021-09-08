@@ -31,7 +31,6 @@ html,
 body {
     padding: 0;
     margin: 0;
-    font-family: PS;
 }
 
 a {
@@ -40,5 +39,10 @@ a {
 }
 
 * {
+    font-family: PS;
+    font-weight: 400;
     box-sizing: border-box;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }

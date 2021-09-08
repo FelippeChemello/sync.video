@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { parseCookies } from 'nookies';
+import { GetServerSidePropsContext } from 'next';
 import { useForm } from 'react-hook-form';
 import { FiLogIn } from 'react-icons/fi';
 
@@ -119,10 +121,26 @@ const SignUp: React.FC = () => {
     );
 };
 
-export const getStaticProps = async ({ locale }) => ({
-    props: {
-        ...(await serverSideTranslations(locale, ['common', 'footer'])),
-    },
-});
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+    try {
+        const { ['sync.video-token']: token } = parseCookies(ctx);
+
+        if (!token) {
+            throw new Error('Token not found');
+        }
+
+        api.defaults.headers['Authorization'] = `Bearer ${token}`;
+
+        await api.get('users');
+
+        return { redirect: { destination: '/dashboard', permanent: false } };
+    } catch (err) {
+        return {
+            props: {
+                ...(await serverSideTranslations(ctx.locale, ['common'])),
+            },
+        };
+    }
+};
 
 export default SignUp;

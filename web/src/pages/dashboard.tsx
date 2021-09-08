@@ -13,26 +13,39 @@ export default function Dashboard() {
     return (
         <Container>
             <TopBar />
-            <Main style={{ backgroundColor: 'blue' }}>
-                <h1>
-                    Watching videos with friends <span>made easy</span>
-                </h1>
-                <h2>
-                    Don't worry anymore with syncing manually your videos.
-                    <br />
-                    Nevermore you would say '1, 2, 3 play'.
-                </h2>
-
-                <div>
-                    <button className="login">
-                        <Link href="signup">Sign up</Link>
-                    </button>
-                    <button>
-                        <Link href="signin">Sign in</Link>
-                    </button>
-                </div>
-
-                <img src="assets/home.svg" />
+            <Main>
+                <main>
+                    <div>
+                        <h1>
+                            Sincronize áudio e video com seus amigos
+                            automaticamente.
+                        </h1>
+                        <h2>
+                            Fornecemos uma <strong>sincronia perfeita </strong>
+                            entre todos os participantes conectados, além
+                            de&nbsp;
+                            <strong>videochamada simultanea</strong>. Desfrute
+                            da&nbsp;<strong>melhor qualidade</strong> possível
+                            em seus videos, filmes e séries.
+                        </h2>
+                    </div>
+                </main>
+                <aside>
+                    <img
+                        src="/assets/full-quality.svg"
+                        alt="Full quality audio and video"
+                    />
+                    <img
+                        style={{ display: 'none' }}
+                        src="/assets/every-device.svg"
+                        alt="Watch in every device"
+                    />
+                    <img
+                        style={{ display: 'none' }}
+                        src="/assets/video-conf.svg"
+                        alt="Video conference integrated"
+                    />
+                </aside>
             </Main>
         </Container>
     );

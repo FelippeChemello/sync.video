@@ -19,6 +19,9 @@ class User {
     email: string;
 
     @Column()
+    avatar: string;
+
+    @Column()
     @Exclude()
     password: string;
 

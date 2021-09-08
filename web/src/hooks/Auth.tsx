@@ -8,6 +8,7 @@ interface InterfaceAuthContext {
     isAuthenticated: boolean;
     user: User;
     signIn: (data: SignInFormData) => Promise<void>;
+    logOut: () => void;
 }
 
 interface SignInFormData {
@@ -18,6 +19,7 @@ interface SignInFormData {
 interface User {
     name: string;
     email: string;
+    avatar: string;
 }
 
 const AuthContext = createContext({} as InterfaceAuthContext);
@@ -68,8 +70,18 @@ export function AuthProvider({ children }) {
         Router.push('/dashboard');
     }
 
+    async function logOut() {
+        destroyCookie(undefined, 'sync.video-token');
+
+        setUser({} as User);
+
+        api.defaults.headers['Authorization'] = '';
+
+        Router.push('/');
+    }
+
     return (
-        <AuthContext.Provider value={{ isAuthenticated, signIn, user }}>
+        <AuthContext.Provider value={{ isAuthenticated, signIn, user, logOut }}>
             {children}
         </AuthContext.Provider>
     );

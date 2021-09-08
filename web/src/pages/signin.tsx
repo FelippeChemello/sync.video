@@ -1,10 +1,12 @@
-import { useContext } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { GetServerSidePropsContext } from 'next';
+import { parseCookies } from 'nookies';
 import { useForm } from 'react-hook-form';
 import { FiLogIn } from 'react-icons/fi';
 
+import api from '../services/api';
 import { useAuth } from '../hooks/Auth';
 import { useToast } from '../hooks/Toast';
 
@@ -33,15 +35,15 @@ const SignIn: React.FC = () => {
     const { t } = useTranslation('common');
     const { register, handleSubmit } = useForm<FormInputs>();
     const { signIn } = useAuth();
-    const {addToast} = useToast();
+    const { addToast } = useToast();
 
     const formSubmit = handleSubmit(
         async ({ email, password }: SignInFormData) => {
             try {
                 await signIn({ email, password });
-                addToast({title: t('signin-success'), type: 'success'});
+                addToast({ title: t('signin-success'), type: 'success' });
             } catch (err) {
-                addToast({title: t('signin-error'), type: 'error'});
+                addToast({ title: t('signin-error'), type: 'error' });
             }
         },
     );
@@ -92,10 +94,26 @@ const SignIn: React.FC = () => {
     );
 };
 
-export const getStaticProps = async ({ locale }) => ({
-    props: {
-        ...(await serverSideTranslations(locale, ['common', 'footer'])),
-    },
-});
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+    try {
+        const { ['sync.video-token']: token } = parseCookies(ctx);
+
+        if (!token) {
+            throw new Error('Token not found');
+        }
+
+        api.defaults.headers['Authorization'] = `Bearer ${token}`;
+
+        await api.get('users');
+
+        return { redirect: { destination: '/dashboard', permanent: false } };
+    } catch (err) {
+        return {
+            props: {
+                ...(await serverSideTranslations(ctx.locale, ['common'])),
+            },
+        };
+    }
+};
 
 export default SignIn;
