@@ -1,5 +1,6 @@
 {
     "dependencies": {
+        "@thream/socketio-jwt": "^2.1.1",
         "bcryptjs": "^2.4.3",
         "celebrate": "^15.0.0",
         "class-transformer": "^0.4.0",
@@ -18,11 +19,12 @@
     },
     "scripts": {
         "dev:server": "ts-node-dev --transpile-only ./src/shared/infra/http/server.ts",
-        "dev:db": "docker start mysql_sync || docker run --name mysql_sync --net=host -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=syncvideo -e MYSQL_USER=admin -e MYSQL_PASSWORD=admin mysql:5.7",
+        "dev:db": "docker start mysql_sync || docker run -d --name mysql_sync --net=host -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=syncvideo -e MYSQL_USER=admin -e MYSQL_PASSWORD=admin mysql:5.7",
         "dev:mongo": "docker start mongo_sync || docker run --name mongo_sync -d -p 27017:27017 -t mongo",
-        "dev": "yarn dev:mongo && yarn dev:db && yarn dev:server",
+        "dev": "yarn dev:mongo && yarn dev:db && yarn migration:run && yarn dev:server",
         "preprod": "./node_modules/.bin/typeorm migration:run",
         "prod": "tsc && node ./dist/server.js",
+        "migration:run": "yarn typeorm migration:run",
         "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -f ./src/config/ormconfig.js"
     },
     "name": "sync-backend",
@@ -32,6 +34,7 @@
     "devDependencies": {
         "@types/bcryptjs": "^2.4.2",
         "@types/express": "^4.17.13",
+        "@types/jsonwebtoken": "^8.5.5",
         "@types/uuid": "^8.3.1",
         "@types/ws": "^7.4.7",
         "ts-node-dev": "^1.1.8",

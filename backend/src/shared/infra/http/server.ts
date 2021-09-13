@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import http from 'http';
+import { authorize } from '@thream/socketio-jwt';
 import socketio from 'socket.io';
 import cors from 'cors';
 import { errors } from 'celebrate';
@@ -9,9 +10,10 @@ import 'express-async-errors';
 import { ConnectionOptions, createConnections } from 'typeorm';
 
 import routes from './routes';
-import { connection as ioConnection } from '../../../modules/party/infra/ws';
+import { connection as ioConnection } from '../../../modules/party/infra/http/websocket';
 import AppError from '../../errors/AppError';
-import ormConfig from '../../../config/ormconfig'
+import ormConfig from '../../../config/ormconfig';
+import authConfig from '../../../config/auth';
 
 const port: number = parseInt(process.env.PORT || '3001', 10);
 const app: express.Express = express();
@@ -26,6 +28,8 @@ const io: socketio.Server = new socketio.Server();
     import('../../container');
 
     io.attach(server, { cors: { origin: '*' } });
+
+    io.use(authorize({ secret: authConfig.jwt.secret }));
 
     io.on('connection', ioConnection);
 

@@ -12,6 +12,7 @@ interface InterfaceRequestDTO {
     name: string;
     email: string;
     password: string;
+    avatar: string;
 }
 
 @injectable()
@@ -25,6 +26,7 @@ export default class CreateUserService {
         name,
         email,
         password,
+        avatar,
     }: InterfaceRequestDTO): Promise<User> {
         const checkUserExists = await this.usersRepository.findOne({
             where: { email },
@@ -40,6 +42,7 @@ export default class CreateUserService {
             name,
             email,
             password: hashedPassword,
+            avatar,
         });
 
         await this.usersRepository.save(user);

@@ -10,7 +10,8 @@ Content-Type: application/json
 {
     "name": "Felippe Jaqson Chemello",
     "email": "felippe@codestack.me",
-    "password": "123456"
+    "password": "123456",
+    "avatar": "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAA7EAAAOxAGVKw4bAAADKUlEQVR4nO2ab0yMcRzAP8jVPefk7lomarn8mU3+lNhapWbDyJiZF2yYzTvLaMyfrZkxMvOSIZuZEfJnkV1/zAuEFpm6wovoQlHnzp8rdYo35EWcbj362vp9Xj2753nu93k+e57n99yzGxIVl/ONQcxQaQFpVABpAWlUAGkBaVQAaQFpVABpAWlUAGkBaVQAaQFpVABpAWlUAGkBaVQAaQFpVABpAWlC+vsF9lgbt8uy+rx99var5BdU/XH9tPgolmXGMyshGvt4G+YRoXT6u/B626l/4aai0oWjtA5nXXN/1QEdAujFuLGjyN27hPTUCb3WhYQMQzMaiBoTTkqynS1Z6SxdmUflo8Z+j6trgI2bC3j4+FXAbVrdvl6fzU6M4dSJVYSPNAJQU9vEtaIaqp68ptXtwzB8GDHRFhJnRrNowRRa3T5dDh50DvCm+SOuRk9Q+9hjbZzOW43ZHMaXDj87cq5z4dLjXttVO5soctSyZ38xVouml7L8JXA4dxlmcxjd3d2s23CW2+X1f93nvadNt/FFZ4G5KXEkJcYAcOzkvT4dvN6IBlixfAYAnZ1fOZp3V8RBNEBash2A8gcvcf/m5jgQiAWwWjQiIkYA8Kgq8MzxLxELMDrS3LPc/O6jlIa+s8Dlc+sDrn/67C3zFh8BIDT019Btvk49NYJC7Azwtf06aM1kkNIY2CdBv7+rZ9nrbe9ZjrCZ9NQICrEnwZbWz3i8bVhGacycPk5PjaAQnQZ/3v2T58SiaTKXgWiA6w4nACZTKGtWzRJxEA1wpbCady2fAMjelMHkSZED7iAawO/vYuvOQgA0o4GLZ9aR+uPpcKAQ/zVYdus5+w6WsGvbfGxWE/mn13KnvJ4bxbU465rxetvRTAasFo0JcREkJcTwouE9Bw6V6TK+eACAI8fv0uDysHvXwp63PikBzoTzAV6pBct/EQCgyFFLyc1nLM2cSkbaRKbHR2G1ahjDhvPpcwfeD+24XB7uV7zEUfpUt3GHqL/KDnJUAGkBaVQAaQFpVABpAWlUAGkBaVQAaQFpVABpAWlUAGkBaVQAaQFpVABpAWkGfYDvMNXe0bAFsWEAAAAASUVORK5CYII="
 }
 
 ### Authenticate user
@@ -28,5 +29,12 @@ Content-Type: application/json
 @name = getUser
 
 GET {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### Create party
+@name = createParty
+
+POST {{baseUrl}}/party/
 Content-Type: application/json
 Authorization: Bearer {{token}}

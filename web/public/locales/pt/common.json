@@ -11,7 +11,15 @@
     "name": "Nome",
     "name-invalid": "Nome inválido",
     "email-invalid": "E-mail invalido",
-    "password-invalid": "Senha deve possuir no mínimo 8 caractéres",
+    "password-invalid": "Senha deve possuir no mínimo 8 caracteres",
     "go-premium": "Torne-se Premium",
-    "logout": "Sair"
+    "logout": "Sair",
+    "dashboard-title": "Sincronize áudio e video com seus amigos automaticamente.",
+    "dashboard-subtitle": "Fornecemos uma <strong>sincronia perfeita </strong> entre todos os participantes conectados, além de <strong>video-chamada simultânea</strong>. Desfrute da <strong>melhor qualidade</strong> em seus videos, filmes e séries.",
+    "dashboard-carousel-quality": "Assista a seus videos e filmes <br /> com a máxima qualidade.",
+    "dashboard-carousel-device": "Assista e sincronize em qualquer dispositivo.",
+    "dashboard-carousel-videoconference": "Converse com seus amigos <br /> enquanto assiste ao video ou filme.",
+    "new-party": "Criar reunião",
+    "enter-existing-party": "Digite o código da reunião",
+    "enter-party": "Participar"
 }

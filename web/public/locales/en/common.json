@@ -15,5 +15,13 @@
     "email-invalid": "E-mail is invalid",
     "password-invalid": "Password minimum length 8 characters",
     "go-premium": "Go Premium",
-    "logout": "Logout"
+    "logout": "Logout",
+    "dashboard-title": "Watch videos and movies together.",
+    "dashboard-subtitle": "Sync.video <strong>synchronizes video playback</strong> with all participants, besides allowing <strong>video call</strong> simultaneosly. Watch your movies, series and videos with <strong>full quality</strong> together your friends",
+    "dashboard-carousel-quality": "Watch movies and videos <br /> with full quality.",
+    "dashboard-carousel-device": "Synchronize in every device.",
+    "dashboard-carousel-videoconference": "Talk to your friends while watching movies and series.",
+    "new-party": "New party",
+    "enter-existing-party": "Enter party code",
+    "enter-party": "Access"
 }

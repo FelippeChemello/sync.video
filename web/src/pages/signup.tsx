@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { FiLogIn } from 'react-icons/fi';
 
 import api from '../services/api';
+import getAvatar from '../services/avatar';
 import { useAuth } from '../hooks/Auth';
 import { useToast } from '../hooks/Toast';
 
@@ -20,6 +21,7 @@ import {
     Background,
     AnimationContainer,
 } from '../styles/signup';
+import convertFileToBase64 from '../utils/fileToBase64';
 
 interface FormInputs {
     name: string;
@@ -39,7 +41,10 @@ const SignUp: React.FC = () => {
 
     const formSubmit = handleSubmit(async ({ email, name, password }) => {
         try {
-            await api.post('users', { email, name, password });
+            const avatar = await convertFileToBase64(await getAvatar(name));
+            console.log(avatar);
+
+            await api.post('users', { email, name, password, avatar });
             addToast({
                 title: t('signup-success'),
                 description: t('signup-description-success'),
