@@ -20,8 +20,7 @@
     "scripts": {
         "dev:server": "ts-node-dev --transpile-only ./src/shared/infra/http/server.ts",
         "dev:db": "docker start mysql_sync || docker run -d --name mysql_sync --net=host -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=syncvideo -e MYSQL_USER=admin -e MYSQL_PASSWORD=admin mysql:5.7",
-        "dev:mongo": "docker start mongo_sync || docker run --name mongo_sync -d -p 27017:27017 -t mongo",
-        "dev": "yarn dev:mongo && yarn dev:db && yarn migration:run && yarn dev:server",
+        "dev": "yarn dev:db && yarn migration:run && yarn dev:server",
         "preprod": "./node_modules/.bin/typeorm migration:run",
         "prod": "tsc && node ./dist/server.js",
         "migration:run": "yarn typeorm migration:run",

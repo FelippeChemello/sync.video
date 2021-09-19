@@ -2,6 +2,14 @@
 
 # Ideias
 
+-   No dashboardk
+    -   Trocar aside carousel por lista de ultimas reuniões
+        -   Retenção de reunião mensagens e possibilidade de acessar novamente (Free => 72h | Premium => 30 dias)
+        -   Exportar mensagens (Apenas premium => Txt ou e-mail)
+    -   Premium agendar reunião e convite por e-mail (com link para marcar no calendário)
+
+-   Criar template de e-mail para convite de reunião e backup de mensagens
+
 -   Sincroniza com websocket
 -   Opção de sincronizar por play/pause ou playback speed
 -   Investigar uso GRPC
@@ -12,6 +20,11 @@
 -   Chat
 -   Clientes: Site e Extensão Chrome
 -   Easter egg: Tetris multiplayer (https://www.youtube.com/watch?v=RoRlXxeozbQ)
+
+-   Termos de serviço
+-   Segurança
+
+-   Procedimentos Metodologicos: História, experiencia que queria, benchmark, estudo de infra (de como fazer)
 
 ```js
     import { useState } from 'react';

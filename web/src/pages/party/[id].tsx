@@ -9,7 +9,28 @@ import { parseCookies } from 'nookies';
 import api from '../../services/api';
 import { useToast } from '../../hooks/Toast';
 
+import Loading from '../../components/loading';
+import { Container } from '../../styles/party';
+
+interface InterfaceParticipant {
+    avatar: string;
+    name: string;
+}
+
+interface SocketData {
+    socketId: string;
+    user: InterfaceParticipant;
+}
+
+interface InterfaceParty {
+    id: string;
+    ownerId: number;
+    partiesUsersRelationship: SocketData[];
+}
+
 export default function Party() {
+    const [party, setParty] = useState<InterfaceParty>();
+
     const { t } = useTranslation('common');
     const { addToast } = useToast();
     const { ['sync.video-token']: token } = parseCookies();
@@ -61,13 +82,30 @@ export default function Party() {
                 }, 1500);
             });
 
+            wsClient.on('joinedParty', data => setParty(data));
+
             window.onunload = () => {
                 wsClient.disconnect();
             };
         }
     }, [wsClient]);
 
-    return <div>oi</div>;
+    useEffect(() => {
+        console.log(party);
+    }, [party]);
+
+    if (!party) {
+        return <Loading />;
+    }
+
+    return (
+        <Container>
+            <main>
+                <h1>{party.id}</h1>
+            </main>
+            <div>oi</div>
+        </Container>
+    );
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {

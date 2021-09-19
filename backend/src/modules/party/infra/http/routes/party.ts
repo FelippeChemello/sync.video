@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { celebrate, Joi, Segments } from 'celebrate';
 
 import PartyController from '../controllers/PartyController';
 import ensureAuthenticated from '../../../../users/infra/http/middlewares/ensureIsAuthenticated';
@@ -7,5 +8,27 @@ const partyRouter = Router();
 const partyController = new PartyController();
 
 partyRouter.post('/', ensureAuthenticated, partyController.create);
+
+partyRouter.get(
+    '/:id',
+    ensureAuthenticated,
+    celebrate({
+        [Segments.PARAMS]: {
+            id: Joi.string().uuid().required(),
+        },
+    }),
+    partyController.get,
+);
+
+partyRouter.post(
+    '/:id/addParticipant',
+    ensureAuthenticated,
+    celebrate({
+        [Segments.PARAMS]: {
+            id: Joi.string().uuid().required(),
+        },
+    }),
+    partyController.addParticipant,
+);
 
 export default partyRouter;

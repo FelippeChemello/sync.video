@@ -1,10 +1,12 @@
 import { injectable, inject } from 'tsyringe';
 import { Repository } from 'typeorm';
 
-import Party from '../infra/database/schemas/Party';
+import Party from '../infra/database/entities/Party';
+import AppError from '../../../shared/errors/AppError';
 
 interface InterfaceRequestDTO {
     partyId: string;
+    userId: number;
 }
 
 @injectable()
@@ -14,8 +16,25 @@ export default class GetPartyDataService {
         private partyRepository: Repository<Party>,
     ) {}
 
-    public async execute({ partyId }: InterfaceRequestDTO): Promise<Party[]> {
-        const party = await this.partyRepository.find({ id: partyId });
+    public async execute({
+        partyId,
+        userId,
+    }: InterfaceRequestDTO): Promise<Party> {
+        const party = await this.partyRepository.findOne(partyId, {
+            relations: [
+                'partiesUsersRelationship',
+                'partiesUsersRelationship.user',
+            ],
+        });
+
+        if (
+            !party ||
+            !party.partiesUsersRelationship.filter(
+                relationship => relationship.user.id === userId,
+            )
+        ) {
+            throw new AppError('Failed to get party data');
+        }
 
         return party;
     }

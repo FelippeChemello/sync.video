@@ -4,8 +4,12 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
+    ManyToMany,
 } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
+
+import Party from '../../../../party/infra/database/entities/Party';
+import PartiesUsersRelationship from '../../../../party/infra/database/entities/PartiesUsersRelationship';
 
 @Entity('users')
 class User {
@@ -21,14 +25,22 @@ class User {
     @Column()
     avatar: string;
 
+    @ManyToMany(
+        () => PartiesUsersRelationship,
+        relationship => relationship.user,
+    )
+    partiesUsersRelationship: PartiesUsersRelationship[];
+
     @Column()
     @Exclude()
     password: string;
 
     @CreateDateColumn()
+    @Exclude()
     createdAt: Date;
 
     @UpdateDateColumn()
+    @Exclude()
     updatedAt: Date;
 }
 

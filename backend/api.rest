@@ -38,3 +38,10 @@ Authorization: Bearer {{token}}
 POST {{baseUrl}}/party/
 Content-Type: application/json
 Authorization: Bearer {{token}}
+
+### get party
+@name = getPartyData
+
+GET {{baseUrl}}/party/b41e68bc-6b93-47bc-aded-2855c070d29b
+Content-Type: application/json
+Authorization: Bearer {{token}}

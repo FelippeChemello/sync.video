@@ -9,15 +9,15 @@ import {
 
 @Entity('userTokens')
 class UserToken {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryGeneratedColumn('increment')
+    id: number;
 
     @Column()
     @Generated('uuid')
     token: string;
 
     @Column()
-    userId: string;
+    userId: number;
 
     @CreateDateColumn()
     createdAt: Date;

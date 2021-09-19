@@ -4,13 +4,11 @@ const databasePaths = {
         entities: ['./src/modules/**/infra/database/entities/*.ts'],
         migrations: ['./src/shared/infra/database/migrations/*.ts'],
         migrationsDir: './src/shared/infra/database/migrations',
-        schemas: ['./src/modules/**/infra/database/schemas/*{.ts,.js}'],
     },
     production: {
         entities: ['./dist/modules/**/infra/database/entities/*.js'],
         migrations: ['./dist/shared/infra/database/migrations/*.js'],
         migrationsDir: './dist/shared/infra/database/migrations',
-        schemas: ['./dist/modules/**/infra/database/schemas/*.js'],
     },
 };
 
@@ -29,17 +27,5 @@ module.exports = [
         cli: {
             migrationsDir: databasePaths[process.env.APP_ENV].migrationsDir,
         },
-    },
-    {
-        logging: true,
-        name: 'mongo',
-        type: 'mongodb',
-        host: process.env.MONGO_HOST || 'localhost',
-        port: process.env.MONGO_PORT || '27017',
-        database: process.env.MONGO_DATABASE || 'syncvideo',
-        username: process.env.MONGO_USERNAME,
-        password: process.env.MONGO_PASSWORD,
-        useUnifiedTopology: true,
-        entities: databasePaths[process.env.APP_ENV].schemas,
     },
 ];
