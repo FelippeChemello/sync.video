@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { GetServerSidePropsContext } from 'next';
 import Router, { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
@@ -10,6 +10,8 @@ import api from '../../services/api';
 import { useToast } from '../../hooks/Toast';
 
 import Loading from '../../components/loading';
+import Webcam from '../../components/webcam';
+import Player from '../../components/player/player';
 import { Container } from '../../styles/party';
 
 interface InterfaceParticipant {
@@ -41,6 +43,14 @@ export default function Party() {
     } = useRouter();
 
     useEffect(() => {
+        connectSocket();
+    }, []);
+
+    useEffect(() => {
+        handleSocket();
+    }, [wsClient]);
+
+    const connectSocket = useCallback(() => {
         const socketIo = io('ws://localhost:3001', {
             auth: { token: `Bearer ${token}` },
         });
@@ -61,38 +71,34 @@ export default function Party() {
         });
 
         setWsClient(socketIo);
-    }, []);
+    }, [token]);
 
-    useEffect(() => {
-        if (wsClient) {
-            wsClient.connect();
+    const handleSocket = useCallback(() => {
+        if (!wsClient) return;
 
-            wsClient.emit('selectParty', { partyId });
+        wsClient.connect();
 
-            wsClient.on('partyError', error => {
-                addToast({
-                    title: 'Erro ao entrar na reunião',
-                    description:
-                        'Não encontramos uma reunião com o código solicitado. Por favor verifique o código digitado',
-                    type: 'error',
-                });
+        wsClient.emit('selectParty', { partyId });
 
-                setTimeout(() => {
-                    Router.push('/dashboard');
-                }, 1500);
+        wsClient.on('partyError', error => {
+            addToast({
+                title: 'Erro ao entrar na reunião',
+                description:
+                    'Não encontramos uma reunião com o código solicitado. Por favor verifique o código digitado',
+                type: 'error',
             });
 
-            wsClient.on('joinedParty', data => setParty(data));
+            setTimeout(() => {
+                Router.push('/dashboard');
+            }, 1500);
+        });
 
-            window.onunload = () => {
-                wsClient.disconnect();
-            };
-        }
+        wsClient.on('joinedParty', data => setParty(data));
+
+        window.onunload = () => {
+            wsClient.disconnect();
+        };
     }, [wsClient]);
-
-    useEffect(() => {
-        console.log(party);
-    }, [party]);
 
     if (!party) {
         return <Loading />;
@@ -101,9 +107,11 @@ export default function Party() {
     return (
         <Container>
             <main>
-                <h1>{party.id}</h1>
+                <Player url="https://www.youtube.com/watch?v=IWqQeiwMgco" />
             </main>
-            <div>oi</div>
+            <aside>
+                <Webcam />
+            </aside>
         </Container>
     );
 }

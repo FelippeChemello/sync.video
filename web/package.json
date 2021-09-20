@@ -12,6 +12,10 @@
     },
     "dependencies": {
         "@headlessui/react": "^1.4.1",
+        "@tensorflow-models/body-pix": "^2.2.0",
+        "@tensorflow/tfjs-backend-webgl": "^3.9.0",
+        "@tensorflow/tfjs-converter": "^3.9.0",
+        "@tensorflow/tfjs-core": "^3.9.0",
         "@types/react-webcam": "^3.0.0",
         "axios": "^0.21.4",
         "date-fns": "^2.23.0",

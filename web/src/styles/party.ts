@@ -10,7 +10,7 @@ export const Container = styled.div`
         flex: 1;
     }
 
-    div {
+    aside {
         width: 20vw;
         height: 100vh;
         background-color: #2d333b;

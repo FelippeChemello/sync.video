@@ -10,12 +10,6 @@ const App = ({ Component, pageProps }: AppProps) => {
     return (
         <>
             <Head>
-                <link
-                    rel="preload"
-                    href="assets/Product Sans Regular.ttf"
-                    as="font"
-                    crossOrigin=""
-                />
                 <title>Sync video player with friends</title>
                 <meta
                     name="description"
