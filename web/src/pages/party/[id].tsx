@@ -107,7 +107,7 @@ export default function Party() {
     return (
         <Container>
             <main>
-                <Player url="https://www.youtube.com/watch?v=IWqQeiwMgco" />
+                <Player url="https://www.youtube.com/watch?v=ThBxHyibNaE" />
             </main>
             <aside>
                 <Webcam />

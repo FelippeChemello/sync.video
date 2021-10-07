@@ -10,13 +10,13 @@ const Container = styled.div`
     width: 10px;
 
     video {
-        /* visibility: hidden; */
-        width: 0;
+        visibility: hidden;
+        /* width: 0; */
     }
 
     canvas {
-        width: 100%;
-        background-color: blue;
+        width: 0;
+        /* background-color: blue; */
     }
 `;
 

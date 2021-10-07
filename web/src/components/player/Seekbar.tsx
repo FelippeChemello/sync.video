@@ -1,5 +1,13 @@
-import { useState, useEffect, useRef, MouseEvent, TouchEvent } from 'react';
-import { FiPlay, FiPause } from 'react-icons/fi';
+import {
+    useState,
+    useEffect,
+    useRef,
+    MouseEvent,
+    TouchEvent,
+    useMemo,
+    useCallback,
+} from 'react';
+import { intervalToDuration } from 'date-fns';
 import styled from 'styled-components';
 // import videoStyles from './video.css';
 
@@ -7,15 +15,36 @@ import isTouchDevice from '../../utils/isTouchDevice';
 
 const Container = styled.div`
     flex: 1;
-    background: rgb(58, 61, 80);
-    height: 4px;
+    width: 100%;
+    height: 100%;
     position: relative;
     border-radius: 5px;
+    display: flex;
+    align-items: center;
+
+    > p {
+        color: #fff;
+        font-size: 0.9rem;
+        flex: 1;
+        display: contents;
+        white-space: nowrap;
+        margin-right: 1rem;
+        font-family: NS;
+    }
+`;
+
+const Bar = styled.div`
+    width: 100%;
+    position: relative;
     cursor: pointer;
+    height: 0.3rem;
+    border-radius: 4px;
+    background-color: #ffffff30;
+    margin-left: 1rem;
 `;
 
 const Loaded = styled.div`
-    background: #ccc;
+    background: #aaa;
     height: 4px;
     position: absolute;
     border-radius: 5px;
@@ -23,7 +52,7 @@ const Loaded = styled.div`
 `;
 
 const Played = styled.div`
-    background: rgb(0, 125, 255);
+    background: #fff;
     height: 4px;
     position: absolute;
     border-radius: 5px;
@@ -32,22 +61,14 @@ const Played = styled.div`
 
 const Button = styled.div`
     position: absolute;
-    height: 15px;
-    width: 15px;
-    margin-top: -7.5px;
-    margin-left: -7.5px;
+    height: 12px;
+    width: 12px;
+    margin-top: -6px;
+    margin-left: -5px;
     display: block;
-    background: rgb(0, 125, 255);
+    background: #fff;
     border-radius: 50%;
     top: 50%;
-
-    span {
-        display: block;
-        padding: 0px 30px 30px 30px;
-        left: 50%;
-        margin-left: -30px;
-        position: absolute;
-    }
 `;
 
 interface InterfaceSeekBarProps {
@@ -56,6 +77,7 @@ interface InterfaceSeekBarProps {
     duration: number;
     currentTime: number;
     isPlaying: boolean;
+    setIsSeeking: (isSeeking: boolean) => void;
     seekTo: (time: number, type: 'seconds' | 'fraction') => void;
     play: () => void;
     pause: () => void;
@@ -70,6 +92,7 @@ export default function SeekBar({
     pause,
     play,
     isPlaying,
+    setIsSeeking,
 }: InterfaceSeekBarProps) {
     const barRef = useRef<HTMLDivElement>(null);
     const [barWidth, setBarWidth] = useState(0);
@@ -79,6 +102,7 @@ export default function SeekBar({
         useState<number>(-1);
     const [percentageAfterSeek, setPercentageAfterSeek] = useState<number>(-1);
     const [pausedBeforeSeek, setPausedBeforeSeek] = useState(false);
+    const [formattedDuration, setFormattedDuration] = useState('00:00');
 
     // TODO: Test seek with touch
 
@@ -91,6 +115,12 @@ export default function SeekBar({
     useEffect(() => {
         handleResize();
     }, [barRef]);
+
+    useEffect(() => {
+        setFormattedDuration(formatSecondsToMinutes(duration));
+
+        handleResize();
+    }, [duration]);
 
     useEffect(() => {
         if (percentageAfterSeek < 0) return;
@@ -134,6 +164,8 @@ export default function SeekBar({
             play();
         }
 
+        setIsSeeking(false);
+
         document.ontouchmove = null;
         document.ontouchend = null;
         document.onmousemove = null;
@@ -144,6 +176,8 @@ export default function SeekBar({
         setPausedBeforeSeek(!isPlaying);
 
         pause();
+
+        setIsSeeking(true);
 
         setPercentageBeforeSeek(playedPercentage);
 
@@ -172,37 +206,60 @@ export default function SeekBar({
         seekTo(percentage, 'fraction');
     };
 
+    const formatSecondsToMinutes = useCallback(
+        (timeInSeconds: number) => {
+            if (timeInSeconds <= 0) return '00:00';
+
+            const seconds = Math.abs(Math.floor(timeInSeconds) % 60)
+                .toString()
+                .padStart(2, '0');
+            const minutes = Math.abs(Math.floor(timeInSeconds / 60) % 60)
+                .toString()
+                .padStart(2, '0');
+            const hours = Math.abs(Math.floor(timeInSeconds / 60 / 60))
+                .toString()
+                .padStart(2, '0');
+
+            if (duration >= 3600) return `${hours}:${minutes}:${seconds}`;
+
+            return `${minutes}:${seconds}`;
+        },
+        [duration],
+    );
+
     return (
-        <Container ref={barRef} onClick={isTouch ? null : seekToPosition}>
-            <Loaded
-                style={{
-                    width: `${loadedPercentage * 100}%`,
-                }}
-            />
+        <Container>
+            <p>
+                {formatSecondsToMinutes(currentTime)} / {formattedDuration}
+            </p>
 
-            <Played
-                style={{
-                    width: `${
-                        (percentageAfterSeek >= 0
-                            ? percentageAfterSeek
-                            : playedPercentage) * 100
-                    }%`,
-                }}
-            ></Played>
-
-            <Button
-                onMouseDown={startEvent}
-                onTouchStart={startEvent}
-                style={{
-                    left: `${
-                        (percentageAfterSeek >= 0
-                            ? percentageAfterSeek
-                            : playedPercentage) * 100
-                    }%`,
-                }}
-            >
-                <span />
-            </Button>
+            <Bar ref={barRef} onClick={isTouch ? null : seekToPosition}>
+                <Loaded
+                    style={{
+                        width: `${loadedPercentage * 100}%`,
+                    }}
+                />
+                <Played
+                    style={{
+                        width: `${
+                            (percentageAfterSeek >= 0
+                                ? percentageAfterSeek
+                                : playedPercentage) * 100
+                        }%`,
+                    }}
+                />
+                <Button
+                    onMouseDown={startEvent}
+                    onTouchStart={startEvent}
+                    style={{
+                        left: `${
+                            (percentageAfterSeek >= 0
+                                ? percentageAfterSeek
+                                : playedPercentage) * 100
+                        }%`,
+                    }}
+                />
+            </Bar>
         </Container>
     );
 }

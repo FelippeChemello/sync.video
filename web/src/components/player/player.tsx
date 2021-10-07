@@ -1,37 +1,75 @@
-import { useEffect } from 'hoist-non-react-statics/node_modules/@types/react';
 import { useRef, useState } from 'react';
+import {
+    BsPlayFill,
+    BsPip,
+    BsFullscreen,
+    BsFillPauseFill,
+} from 'react-icons/bs';
 import ReactPlayer from 'react-player';
 import styled from 'styled-components';
 
 import SeekBar from './Seekbar';
+import VolumeBar from './Volumebar';
 
 const Container = styled.div`
     display: flex;
+    flex-direction: column;
     width: 100%;
-    height: 100%;
+    height: 100vh;
     justify-content: center;
     align-items: center;
     position: relative;
 `;
 
 const Controls = styled.div`
-    position: absolute;
-    bottom: 0;
-
-    box-shadow: 0px -90px 90px -20px rgba(0, 0, 0) inset;
+    background-color: #00000050;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem 1.5rem 3.5rem;
     width: 100%;
+    height: 2rem;
+`;
 
-    transition: opacity 0.15s;
+const PlayButton = styled.div`
+    height: 100%;
+    width: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 
-    > div {
+    svg {
+        color: #fff;
+        height: 100%;
         width: 100%;
-        display: flex;
     }
+`;
+
+const OptionButton = styled.div`
+    height: 100%;
+    width: 2rem;
+    margin: 0 0.5rem;
+    padding: 0.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    svg {
+        color: #fff;
+        height: 100%;
+        width: 100%;
+    }
+`;
+
+const VolumeContainer = styled.div`
+    height: 100%;
+    width: auto;
+`;
+
+const SeekBarContainer = styled.div`
+    flex: 1;
+    height: 100%;
 `;
 
 interface PlayerProps {
@@ -47,12 +85,11 @@ interface InterfaceProgress {
 
 export default function Player({ url }: PlayerProps) {
     const playerRef = useRef<ReactPlayer>(null);
-    const [isShowingControls, setIsShowingControls] = useState(true);
-    const [hasEnded, setHasEnded] = useState(false); // TODO: Should sync with socket and reset when change media
-    const [hasStarted, setHasStarted] = useState(false); // TODO: Should sync with socket and reset when change media
     const [duration, setDuration] = useState(0);
+    const [volume, setVolume] = useState(0.7);
     const [playbackRate, setPlaybackRate] = useState(1);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isSeeking, setIsSeeking] = useState(false);
     const [progress, setProgess] = useState<InterfaceProgress>({
         loaded: 0,
         loadedSeconds: 0,
@@ -60,43 +97,19 @@ export default function Player({ url }: PlayerProps) {
         playedSeconds: 0,
     });
 
-    const handleShowControls = (shouldShow: boolean) => {
-        if (hasEnded) {
-            setIsShowingControls(false);
-            return;
-        }
-
-        console.log(hasStarted, isPlaying);
-        if (!hasStarted || !isPlaying) {
-            setIsShowingControls(true);
-
-            return;
-        }
-
-        setIsShowingControls(shouldShow);
-    };
-
     return (
-        <Container
-            onMouseLeave={() => handleShowControls(false)}
-            onMouseEnter={() => handleShowControls(true)}
-        >
+        <Container>
             <ReactPlayer
                 ref={playerRef}
                 url={url}
-                width="99%"
-                height="99%"
+                width="100%"
+                height="100%"
                 playing={isPlaying}
+                volume={volume}
                 onDuration={setDuration}
                 onProgress={setProgess}
-                onStart={() => {
-                    setHasStarted(true);
-                    handleShowControls(false);
-                }}
-                onEnded={() => {
-                    setHasEnded(true);
-                    handleShowControls(false);
-                }}
+                onStart={() => {}} // TODO: Send event on start
+                onEnded={() => {}} // TODO: Send event on end
                 onPause={() => {
                     setIsPlaying(false);
                     console.log('pause');
@@ -109,17 +122,22 @@ export default function Player({ url }: PlayerProps) {
                 onSeek={data => console.warn(data)}
                 loop={false}
                 playbackRate={playbackRate}
+                style={{
+                    flex: 1,
+                }}
 
                 // TODO: Setup PIP (remember to stopOnUnmount)
                 // TODO: Sync playback and progress with Socket
             />
-            <Controls
-                style={{
-                    visibility: isShowingControls ? 'visible' : 'hidden',
-                    opacity: isShowingControls ? 1 : 0,
-                }}
-            >
-                <div>
+            <Controls>
+                <PlayButton>
+                    {isPlaying ? (
+                        <BsFillPauseFill onClick={() => setIsPlaying(false)} />
+                    ) : (
+                        <BsPlayFill onClick={() => setIsPlaying(true)} />
+                    )}
+                </PlayButton>
+                <SeekBarContainer>
                     <SeekBar
                         loadedPercentage={progress.loaded}
                         playedPercentage={progress.played}
@@ -129,9 +147,22 @@ export default function Player({ url }: PlayerProps) {
                         play={() => setIsPlaying(true)}
                         pause={() => setIsPlaying(false)}
                         isPlaying={isPlaying}
+                        setIsSeeking={setIsSeeking}
                     />
-                </div>
-                <div></div>
+                </SeekBarContainer>
+                <VolumeContainer>
+                    <VolumeBar
+                        setVolume={setVolume}
+                        volume={volume}
+                        isSeeking={isSeeking}
+                    />
+                </VolumeContainer>
+                <OptionButton>
+                    <BsPip />
+                </OptionButton>
+                <OptionButton>
+                    <BsFullscreen />
+                </OptionButton>
             </Controls>
         </Container>
     );
