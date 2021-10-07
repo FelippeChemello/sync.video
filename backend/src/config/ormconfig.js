@@ -14,7 +14,7 @@ const databasePaths = {
 
 module.exports = [
     {
-        logging: true,
+        // logging: true,
         name: 'default',
         type: 'mysql',
         host: process.env.MYSQL_HOST || 'localhost',
