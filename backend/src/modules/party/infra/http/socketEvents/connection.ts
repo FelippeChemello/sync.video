@@ -1,11 +1,13 @@
 import socketio from 'socket.io';
 import { container } from 'tsyringe';
-
-import GetPartyDataService from '../../services/getPartyData';
-import AddParticipantService from '../../services/addParticipantService';
 import { classToClass } from 'class-transformer';
 
-export const connection = (socket: socketio.Socket) => {
+import GetPartyDataService from '../../../services/getPartyData';
+import AddParticipantService from '../../../services/addParticipantService';
+
+export default function connection(socket: socketio.Socket) {
+    console.log('client connected', socket.id);
+
     socket.on('selectParty', async data => {
         if (!data.partyId) {
             socket.emit('partyError');
@@ -35,4 +37,4 @@ export const connection = (socket: socketio.Socket) => {
     socket.on('disconnect', () => {
         console.log('client disconnected', socket.id);
     });
-};
+}
