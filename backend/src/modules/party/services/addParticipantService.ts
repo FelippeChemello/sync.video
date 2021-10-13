@@ -10,7 +10,7 @@ import AppError from '../../../shared/errors/AppError';
 interface InterfaceRequestDTO {
     userId: number;
     partyId: string;
-    sockedId: string;
+    socketId: string;
 }
 
 @injectable()
@@ -29,7 +29,7 @@ export default class AddParticipantService {
     public async execute({
         partyId,
         userId,
-        sockedId,
+        socketId,
     }: InterfaceRequestDTO): Promise<Party> {
         const userToBeAdded = await this.userRepository.findOne(userId);
 
@@ -52,17 +52,21 @@ export default class AddParticipantService {
             party.partiesUsersRelationship.find(
                 participant => participant.userId === userToBeAdded.id,
             )
-        ) {
+        ) {        
             const userPartyRelationship =
                 await this.partiesUsersRelationshipRepository.findOne({
                     where: { userId, partyId },
                 });
 
+                console.log(
+                    `updating socket ID ${userPartyRelationship?.socketId} -> ${socketId}`,
+                );
+
             if (!userPartyRelationship) {
                 throw new AppError('Party and User Relationship was not found');
             }
 
-            userPartyRelationship.socketId = sockedId;
+            userPartyRelationship.socketId = socketId;
 
             await this.partiesUsersRelationshipRepository.save(
                 userPartyRelationship,

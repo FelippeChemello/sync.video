@@ -40,7 +40,7 @@ export default class PartyController {
 
         const party = await container
             .resolve(AddParticipantService)
-            .execute({ userId: +userId, partyId: partyId, sockedId: '' });
+            .execute({ userId: +userId, partyId: partyId, socketId: '' });
 
         return response.json(classToClass(party));
     }

@@ -8,33 +8,19 @@ import { parseCookies } from 'nookies';
 
 import api from '../../services/api';
 import { useToast } from '../../hooks/Toast';
+import { useAuth } from '../../hooks/Auth';
 
 import Loading from '../../components/loading';
 import Webcam from '../../components/webcam';
 import Player from '../../components/player/player';
 import { Container } from '../../styles/party';
 
-interface InterfaceParticipant {
-    avatar: string;
-    name: string;
-}
-
-interface SocketData {
-    socketId: string;
-    user: InterfaceParticipant;
-}
-
-interface InterfaceParty {
-    id: string;
-    ownerId: number;
-    partiesUsersRelationship: SocketData[];
-}
-
 export default function Party() {
-    const [party, setParty] = useState<InterfaceParty>();
-
     const { t } = useTranslation('common');
+    const [party, setParty] = useState<InterfaceParty>();
+    const [socketMode, setSocketMode] = useState<'passive' | 'active'>();
     const { addToast } = useToast();
+    const { user } = useAuth();
     const { ['sync.video-token']: token } = parseCookies();
 
     const [wsClient, setWsClient] = useState<Socket>();
@@ -47,13 +33,13 @@ export default function Party() {
     }, []);
 
     useEffect(() => {
-        handleSocket();
+        handleSocketPartyEvents();
     }, [wsClient]);
 
     const connectSocket = useCallback(() => {
         const socketIo = io('ws://localhost:3001', {
             auth: { token: `Bearer ${token}` },
-        });
+        }); // TODO: change to real server
 
         socketIo.on('connect_error', error => {
             socketIo.disconnect();
@@ -73,14 +59,14 @@ export default function Party() {
         setWsClient(socketIo);
     }, [token]);
 
-    const handleSocket = useCallback(() => {
+    const handleSocketPartyEvents = useCallback(() => {
         if (!wsClient) return;
 
         wsClient.connect();
 
-        wsClient.emit('selectParty', { partyId });
+        wsClient.emit('party:join', { partyId });
 
-        wsClient.on('partyError', error => {
+        wsClient.on('party:error', () => {
             addToast({
                 title: 'Erro ao entrar na reunião',
                 description:
@@ -93,21 +79,49 @@ export default function Party() {
             }, 1500);
         });
 
-        wsClient.on('joinedParty', data => setParty(data));
+        wsClient.on('party:joined', (data: InterfaceParty) => {
+            setParty(data);
+            console.log(data);
+        });
+
+        wsClient.on('party:changeOwner', (data: InterfaceParty) => {
+            setParty(data);
+            console.log(data);
+        });
 
         window.onunload = () => {
             wsClient.disconnect();
         };
     }, [wsClient]);
 
-    if (!party) {
+    useEffect(() => {
+        if (!party || !user) return;
+
+        if (party.ownerId === user.id) {
+            setSocketMode('active');
+        } else {
+            setSocketMode('passive');
+        }
+
+        console.log('Mode: ', socketMode);
+    }, [party, user]);
+
+    if (!party || !socketMode) {
         return <Loading />;
     }
 
     return (
         <Container>
             <main>
-                <Player url="https://www.youtube.com/watch?v=ThBxHyibNaE" />
+                <Player
+                    socket={wsClient}
+                    partyMode={socketMode}
+                    partyId={party.id}
+                    url={party.videos.filter(video => video.isActive)[0].url}
+                    currentTime={
+                        party.videos.filter(video => video.isActive)[0].second
+                    }
+                />
             </main>
             <aside>
                 <Webcam />

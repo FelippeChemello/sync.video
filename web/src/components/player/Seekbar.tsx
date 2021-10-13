@@ -49,6 +49,8 @@ const Loaded = styled.div`
     position: absolute;
     border-radius: 5px;
     left: 0;
+
+    transition: width 0.3s ease-in-out;
 `;
 
 const Played = styled.div`
@@ -57,18 +59,22 @@ const Played = styled.div`
     position: absolute;
     border-radius: 5px;
     left: 0;
+
+    transition: width 0.3s ease-in-out;
 `;
 
 const Button = styled.div`
     position: absolute;
     height: 12px;
     width: 12px;
-    margin-top: -6px;
+    margin-top: -6px; 
     margin-left: -5px;
     display: block;
     background: #fff;
     border-radius: 50%;
     top: 50%;
+
+    transition: left 0.3s ease-in-out;
 `;
 
 interface InterfaceSeekBarProps {

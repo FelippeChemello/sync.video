@@ -24,6 +24,7 @@ export default class GetPartyDataService {
             relations: [
                 'partiesUsersRelationship',
                 'partiesUsersRelationship.user',
+                'videos'
             ],
         });
 

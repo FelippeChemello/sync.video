@@ -6,8 +6,6 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     OneToMany,
-    ManyToMany,
-    JoinTable,
     OneToOne,
     JoinColumn,
 } from 'typeorm';
@@ -15,6 +13,7 @@ import {
 import User from '../../../../users/infra/database/entities/User';
 import Message from './Message';
 import PartiesUsersRelationship from './PartiesUsersRelationship';
+import Video from './Video';
 
 @Entity('parties')
 export default class Party {
@@ -31,11 +30,15 @@ export default class Party {
     @OneToMany(
         () => PartiesUsersRelationship,
         relationship => relationship.party,
+        { cascade: true },
     )
     partiesUsersRelationship: PartiesUsersRelationship[];
 
-    @OneToMany(() => Message, message => message.party)
+    @OneToMany(() => Message, message => message.party, { cascade: true })
     messages: Message[];
+
+    @OneToMany(() => Video, video => video.party, { cascade: true })
+    videos: Video[];
 
     @CreateDateColumn()
     @Exclude()

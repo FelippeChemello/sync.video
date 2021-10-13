@@ -8,7 +8,9 @@ import { loadSocketEvents } from '../../../modules/party/infra/http/socketEvents
 const io: socketio.Server = new socketio.Server();
 
 function startSocketIo() {
-    io.attach(server, { cors: { origin: '*' } });
+    io.attach(server, {
+        cors: { origin: '*' },
+    });
 
     io.use(authorize({ secret: authConfig.jwt.secret }));
 

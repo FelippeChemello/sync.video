@@ -18,7 +18,7 @@
 -   Remover fundo da camera (https://blog.tensorflow.org/2019/11/updated-bodypix-2.html)
 -   Chat
 -   Clientes: Site e Extensão Chrome (https://medium.com/reactbrasil/como-criar-uma-extens%C3%A3o-para-o-chrome-utilizando-react-60282e534009)
--   Easter egg: Tetris multiplayer (https://www.youtube.com/watch?v=RoRlXxeozbQ)
+-   Easter egg: Tetris multiplayer (https://www.youtube.com/watch?v=RoRlXxeozbQ) - Icone <MdVideogameAsset />
 
 -   Termos de serviço
 -   Segurança
@@ -54,3 +54,4 @@
 
 Anotações: 
 - Fonte Noto Sans Foi editada através do https://www.glyphrstudio.com/online/ para remover a barra do centro do 0
+- Devemos remover o listener do socket para atualiza-lo, caso não remova, quando o componente for recarregado irá adicionar mais um listener para o mesmo evento gerando um loop (https://stackoverflow.com/a/32266619)
