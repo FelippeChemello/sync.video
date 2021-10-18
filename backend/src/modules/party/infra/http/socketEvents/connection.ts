@@ -14,9 +14,12 @@ export default function connection(
 ) {
     console.log('client connected', socket.id);
 
-    socket.on('party:join', async (data: { partyId: string }) => {
-        await joinParty(socket, data.partyId);
-    });
+    socket.on(
+        'party:join',
+        async (data: { partyId: string; peerId: string }) => {
+            await joinParty(socket, data.partyId, data.peerId);
+        },
+    );
 
     socket.on(
         'party:changeOwner',
@@ -55,8 +58,12 @@ export default function connection(
     });
 }
 
-async function joinParty(socket: socketio.Socket, partyId: string) {
-    if (!partyId) {
+async function joinParty(
+    socket: socketio.Socket,
+    partyId: string,
+    peerId: string,
+) {
+    if (!partyId || !peerId) {
         socket.emit('party:error');
         return;
     }
@@ -66,13 +73,15 @@ async function joinParty(socket: socketio.Socket, partyId: string) {
 
         await container
             .resolve(AddParticipantService)
-            .execute({ partyId, userId: +userId, socketId: socket.id });
+            .execute({ partyId, userId: +userId, socketId: socket.id, peerId });
 
         const party = await container
             .resolve(GetPartyDataService)
             .execute({ partyId, userId: +userId });
 
         socket.join(party.id);
+
+        socket.broadcast.to(party.id).emit('party:userJoined', peerId); // TODO: listen to this event and connect to peer
 
         socket.emit('party:joined', classToClass(party));
     } catch (err) {

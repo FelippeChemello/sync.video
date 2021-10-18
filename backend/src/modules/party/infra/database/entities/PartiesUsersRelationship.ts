@@ -33,6 +33,9 @@ export default class PartiesUsersRelationship {
     @Column()
     socketId: string;
 
+    @Column()
+    peerId: string;
+
     @CreateDateColumn()
     @Exclude()
     createdAt: Date;

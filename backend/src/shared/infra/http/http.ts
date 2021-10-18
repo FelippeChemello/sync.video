@@ -2,6 +2,7 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import { errors } from 'celebrate';
+import { ExpressPeerServer } from 'peer';
 
 import routes from './routes';
 import errorHandler from './middlewares/error';
@@ -19,6 +20,8 @@ function startServer() {
     app.use(errors());
 
     app.use(errorHandler);
+
+    app.use('/peer', ExpressPeerServer(server));
 
     server.listen(port, () => {
         console.log(`🚀 Server started on port ${port}`);

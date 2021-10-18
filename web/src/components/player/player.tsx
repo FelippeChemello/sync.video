@@ -276,7 +276,7 @@ export default function Player({
                         value={url}
                         onChange={e => setUrl(e.target.value)}
                         placeholder={
-                            partyMode === 'active'
+                            partyMode === 'active' // TODO: i18n
                                 ? 'Enter video URL here or click on Icon to upload your file'
                                 : 'Waiting for party owner to input video'
                         }
