@@ -49,7 +49,7 @@ export default function Webcam({ setWebcamStream }: WebcamProps) {
     const [bodyPixNeuralNetwork, setBodyPixNeuralNetwork] =
         useState<bodyPix.BodyPix>();
     const [backgroundType, setBackgroundType] =
-        useState<BackgroundType>('image');
+        useState<BackgroundType>('image'); // TODO: Initialize with normal and when bodypix model loaded, allow other types, if WebGL is available
     const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>(
         '../assets/cinema-bg.jpg', // TODO: add more images
     );

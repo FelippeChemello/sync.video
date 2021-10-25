@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
-import VideoWebcam from 'react-webcam';
-import '@tensorflow/tfjs-core';
-import '@tensorflow/tfjs-converter';
-import '@tensorflow/tfjs-backend-webgl';
-import * as bodyPix from '@tensorflow-models/body-pix';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Socket } from 'socket.io-client';
 import styled from 'styled-components';
+
+import Webcam from './webcam';
 
 const Container = styled.div`
     position: relative;
@@ -39,127 +37,82 @@ const Container = styled.div`
 
 type VideoConferenceProps = {
     peer: any;
+    socket: Socket;
 };
 
-type BackgroundType = 'normal' | 'blur' | 'image';
-
-export default function VideoConference({ peer }: VideoConferenceProps) {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const webcamRef = useRef<VideoWebcam>(null);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [bodyPixNeuralNetwork, setBodyPixNeuralNetwork] =
-        useState<bodyPix.BodyPix>();
-    const [backgroundType, setBackgroundType] =
-        useState<BackgroundType>('blur');
-    const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>(
-        '../assets/cinema-bg.jpg', // TODO: add more images
-    );
+export default function VideoConference({
+    peer,
+    socket,
+}: VideoConferenceProps) {
+    //TODO: https://github.com/capelaum/ZoomClone/blob/3c4cca7639e387d1ad574e2fc457033bda8c3bff/public/pages/room/src/business.js#L107
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [webcamStream, setWebcamStream] = useState<MediaStream | undefined>();
 
     useEffect(() => {
-        console.log('Loading bodyPix model...');
+        if (!webcamStream) return;
 
-        bodyPix.load().then(model => {
-            console.log('bodyPix model loaded!');
-            setBodyPixNeuralNetwork(model);
-        });
-    }, []);
-
-    async function initWebcam() {
-        console.log('Initializing webcam...');
-
-        const webcam = webcamRef.current.video;
-        const canvas = canvasRef.current;
-
-        canvas.width = webcam.videoWidth;
-        canvas.height = webcam.videoHeight;
-
-        const audio = webcamRef.current.stream.getAudioTracks();
-        const video = canvasRef.current.captureStream(24);
-
-        const mediaStream = new MediaStream();
-        [...audio, ...video.getTracks()].forEach(track =>
-            mediaStream.addTrack(track),
-        );
-
-        console.log(mediaStream);
-
-        videoRef.current.srcObject = mediaStream;
-
-        drawCanvas();
-    }
-
-    async function drawCanvas() {
-        requestAnimationFrame(drawCanvas);
-
-        switch (backgroundType) {
-            case 'blur':
-                await drawWithBlur();
-                break;
-            case 'image':
-                await drawWithImage();
-                break;
-            case 'normal':
-            default:
-                await drawWebcam();
-                break;
+        if (socket.hasListeners('party:userJoined')) {
+            socket.off('party:userJoined');
         }
-    }
 
-    async function drawWebcam() {
-        const webcam = webcamRef.current.video;
-        const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
+        console.log('peer', peer);
 
-        context.drawImage(webcam, 0, 0, canvas.width, canvas.height);
-    }
+        peer.on('open', () => console.log('Opened'));
 
-    async function drawWithImage() {
-        const webcam = webcamRef.current.video;
-        const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
+        peer.on('connection', dataConn => {
+            console.log('dataConn', dataConn);
 
-        canvas.style.backgroundImage = `url(${backgroundImageUrl})`;
+            dataConn.on('data', data => console.log('data', data));
+        });
 
-        const segmentation = await bodyPixNeuralNetwork.segmentPerson(webcam);
-        const mask = bodyPix.toMask(segmentation);
+        socket.on('party:userJoined', (joinedPeerId: String) => {
+            console.log('joinedPeerId', joinedPeerId, webcamStream);
 
-        const tmpCanvas = document.createElement('canvas');
-        const tmpContext = tmpCanvas.getContext('2d');
-        tmpCanvas.width = canvas.width;
-        tmpCanvas.height = canvas.height;
-        tmpContext.putImageData(mask, 0, 0);
+            const conn = peer.connect(joinedPeerId);
+            conn.on('open', () => {
+                console.log('open', conn);
 
-        context.drawImage(webcam, 0, 0, canvas.width, canvas.height);
-        context.save();
-        context.globalCompositeOperation = 'destination-out';
-        context.drawImage(tmpCanvas, 0, 0, canvas.width, canvas.height);
-        context.restore();
-    }
+                conn.send('hi!');
+            });
 
-    async function drawWithBlur() {
-        const canvas = canvasRef.current;
-        const webcam = webcamRef.current.video;
+            conn.on('error', error => {
+                console.log('ERROR: ', error);
+            });
 
-        const segmentation = await bodyPixNeuralNetwork.segmentPerson(webcam);
+            conn.on('data', data => {
+                // Will print 'hi!'
+                console.log(data);
+            });
+            conn.on('open', () => {
+                console.log('open 2');
 
-        bodyPix.drawBokehEffect(canvas, webcam, segmentation, 14, 1, false);
-    }
+                conn.send('hello!');
+            });
+
+            peer.on('connection', conn => {});
+        });
+    }, [socket, peer, webcamStream]);
+
+    const addVideoStream = useCallback(
+        (stream: MediaStream) => {
+            console.log('Adicionando video ' + stream.id);
+
+            if (!containerRef.current) return;
+
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.muted = true; // TODO: remove this
+            video.play();
+            containerRef.current.appendChild(video);
+        },
+        [containerRef],
+    );
 
     return (
         <>
-            <Container>
-                <VideoWebcam
-                    audio={true}
-                    mirrored={true}
-                    ref={webcamRef}
-                    onLoadedData={initWebcam}
-                    height={480}
-                    width={640}
-                    muted={true}
-                />
-                <canvas ref={canvasRef} />
+            <Container ref={containerRef}>
+                <Webcam setWebcamStream={setWebcamStream} />
             </Container>
-            <video ref={videoRef} autoPlay={true}></video>
         </>
     );
 }

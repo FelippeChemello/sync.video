@@ -11,8 +11,8 @@ import { useToast } from '../../hooks/Toast';
 import { useAuth } from '../../hooks/Auth';
 
 import Loading from '../../components/loading';
-import Webcam from '../../components/webcam';
 import Player from '../../components/player/player';
+import VideoConference from '../../components/videoconference';
 import { Container } from '../../styles/party';
 
 export default function Party() {
@@ -21,8 +21,7 @@ export default function Party() {
     const [socketMode, setSocketMode] = useState<'passive' | 'active'>();
     const [wsClient, setWsClient] = useState<Socket>();
     const [peerClient, setPeerClient] = useState<any>();
-    const [webcamStream, setWebcamStream] = useState<MediaStream>();
-    const { addToast } = useToast();
+    const { addToast } = useToast(); // TODO: When occurs an error, toast is being showed below the video
     const { user } = useAuth();
     const { ['sync.video-token']: token } = parseCookies();
 
@@ -46,10 +45,12 @@ export default function Party() {
                 console.log('importando');
 
                 const peer = new Peer(peerId, {
-                    host: process.env.NEXT_PUBLIC_PEER_URL,
-                    port: Number(process.env.NEXT_PUBLIC_PEER_PORT),
-                    path: '/peer',
+                    // host: process.env.NEXT_PUBLIC_PEER_URL,
+                    // port: Number(process.env.NEXT_PUBLIC_PEER_PORT),
+                    // path: '/peer',
+                    debug: 1
                 });
+
                 setPeerClient(peer);
             })
             .catch(err => console.error('Erro ao import peerjs', err));
@@ -151,7 +152,7 @@ export default function Party() {
                 />
             </main>
             <aside>
-                <Webcam setWebcamStream={setWebcamStream} />
+                <VideoConference peer={peerClient} socket={wsClient} />
             </aside>
         </Container>
     );

@@ -55,3 +55,4 @@
 Anotações: 
 - Fonte Noto Sans Foi editada através do https://www.glyphrstudio.com/online/ para remover a barra do centro do 0
 - Devemos remover o listener do socket para atualiza-lo, caso não remova, quando o componente for recarregado irá adicionar mais um listener para o mesmo evento gerando um loop (https://stackoverflow.com/a/32266619)
+- https://medium.com/geekculture/how-to-create-a-video-chat-with-react-typescript-and-webrtc-8a70f6159cdc

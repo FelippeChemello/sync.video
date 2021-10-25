@@ -80,6 +80,7 @@ const SignIn: React.FC = () => {
                         </button>
 
                         <Link href="/forgot-password">
+                            {/* TODO: create forgot-password page */}
                             {t('forgot-password')}
                         </Link>
                     </form>
