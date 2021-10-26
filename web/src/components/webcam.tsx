@@ -6,10 +6,14 @@ import '@tensorflow/tfjs-backend-webgl';
 import * as bodyPix from '@tensorflow-models/body-pix';
 import styled from 'styled-components';
 
+import loadImage from '../utils/loadImage';
+import sleep from '../utils/sleep';
+import { useAuth } from '../hooks/Auth';
+
 const Container = styled.div`
     position: relative;
     width: 100%;
-    margin: 20px;
+    padding: 0.25rem;
     margin: 0 auto;
 
     video {
@@ -18,22 +22,20 @@ const Container = styled.div`
         top: 0;
         left: 0;
         right: 0;
-        z-index: 9;
         width: 100%;
         height: auto;
         visibility: hidden;
     }
 
     canvas {
-        position: absolute;
         text-align: center;
         top: 0;
         left: 0;
         right: 0;
-        z-index: 9;
         width: 100%;
         transform: scaleX(-1);
         background-size: cover;
+        border-radius: 0.5rem;
     }
 `;
 
@@ -46,8 +48,11 @@ type BackgroundType = 'normal' | 'blur' | 'image';
 export default function Webcam({ setWebcamStream }: WebcamProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const webcamRef = useRef<VideoWebcam>(null);
-    const [bodyPixNeuralNetwork, setBodyPixNeuralNetwork] =
-        useState<bodyPix.BodyPix>();
+    const [bodyPixNeuralNetwork, setBodyPixNeuralNetwork] = useState<
+        bodyPix.BodyPix | undefined
+    >();
+    const [hasInitializedWebcam, setHasInitializedWebcam] =
+        useState<boolean>(false);
     const [backgroundType, setBackgroundType] =
         useState<BackgroundType>('image'); // TODO: Initialize with normal and when bodypix model loaded, allow other types, if WebGL is available
     const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>(
@@ -56,18 +61,32 @@ export default function Webcam({ setWebcamStream }: WebcamProps) {
     const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement>();
     // TODO: add warning when device doesn't have webcam or bodyPix (webGL or WASM) nor supported
 
-    useEffect(() => {
-        console.log('Loading bodyPix model...');
+    const { user } = useAuth(); // TODO: Remove this and where it is used in this page
 
-        bodyPix.load().then(model => {
-            console.log('bodyPix model loaded!');
-            setBodyPixNeuralNetwork(model);
-        });
+    useEffect(() => {
+        loadBodyPixModel();
     }, []);
 
     useEffect(() => {
         loadImage(backgroundImageUrl).then(setBackgroundImage);
     }, [backgroundImageUrl]);
+
+    useEffect(() => {
+        // While bodypix and webcam isn't loaded, wait
+        if (!bodyPixNeuralNetwork || !hasInitializedWebcam) return;
+
+        initWebcam();
+    }, [bodyPixNeuralNetwork, hasInitializedWebcam]);
+
+    async function loadBodyPixModel() {
+        console.log('Loading bodyPix model...');
+
+        const bodyPixModel = await bodyPix.load();
+        await sleep(1000);
+
+        console.log('bodyPix model loaded!');
+        setBodyPixNeuralNetwork(bodyPixModel);
+    }
 
     async function initWebcam() {
         console.log('Initializing webcam...');
@@ -147,16 +166,9 @@ export default function Webcam({ setWebcamStream }: WebcamProps) {
         context.globalCompositeOperation = 'destination-over'; // Add image  below webcam
         context.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
         context.restore();
-    }
 
-    async function loadImage(url: string): Promise<HTMLImageElement> {
-        return new Promise((resolve, reject) => {
-            const image = new Image();
-            image.src = url;
-
-            image.onload = () => resolve(image);
-            image.onerror = error => reject(error);
-        });
+        context.font = '72px Arial';
+        context.fillText(`${user.id}`, 10, 50);
     }
 
     async function drawWithBlur() {
@@ -174,7 +186,7 @@ export default function Webcam({ setWebcamStream }: WebcamProps) {
                 audio={true}
                 mirrored={true}
                 ref={webcamRef}
-                onLoadedData={initWebcam}
+                onLoadedData={() => setHasInitializedWebcam(true)}
                 height={480}
                 width={640}
                 muted={true}

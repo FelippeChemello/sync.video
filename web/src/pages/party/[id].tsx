@@ -40,20 +40,18 @@ export default function Party() {
     const createPeerClient = useCallback(async () => {
         const { data: peerId } = await api.get('peer/peerjs/id');
 
-        await import('peerjs')
-            .then(({ default: Peer }) => {
-                console.log('importando');
+        const { default: Peer } = await import('peerjs');
 
-                const peer = new Peer(peerId, {
-                    // host: process.env.NEXT_PUBLIC_PEER_URL,
-                    // port: Number(process.env.NEXT_PUBLIC_PEER_PORT),
-                    // path: '/peer',
-                    debug: 1
-                });
+        console.log('importando PeerJS');
 
-                setPeerClient(peer);
-            })
-            .catch(err => console.error('Erro ao import peerjs', err));
+        const peer = new Peer(peerId, {
+            // host: process.env.NEXT_PUBLIC_PEER_URL,
+            // port: Number(process.env.NEXT_PUBLIC_PEER_PORT),
+            // path: '/peer',
+            debug: 1,
+        });
+
+        setPeerClient(peer);
 
         return peerId;
     }, []);
@@ -114,9 +112,11 @@ export default function Party() {
         });
 
         window.onunload = () => {
+            wsClient.emit('peer:quit', {partyId, peerId})
+
             wsClient.disconnect();
         };
-    }, [wsClient]);
+    }, [wsClient, peerClient]);
 
     useEffect(() => {
         if (!party || !user) return;
@@ -152,7 +152,14 @@ export default function Party() {
                 />
             </main>
             <aside>
-                <VideoConference peer={peerClient} socket={wsClient} />
+                <VideoConference
+                    peer={peerClient}
+                    socket={wsClient}
+                    partyId={partyId as string}
+                    peersAlreadyConnected={party.partiesUsersRelationship.map(
+                        user => user.peerId,
+                    )}
+                />
             </aside>
         </Container>
     );

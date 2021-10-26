@@ -1,12 +1,13 @@
-import socketio from 'socket.io';
+import socketio, { Socket } from 'socket.io';
 import { container } from 'tsyringe';
 import { classToClass } from 'class-transformer';
 
-import GetPartyDataService from '../../../services/getPartyData';
+import GetPartyDataService from '../../../services/getPartyDataService';
 import AddParticipantService from '../../../services/addParticipantService';
 import setPartyUrlService from '../../../services/setPartyUrlService';
 import setPartyOwnerService from '../../../services/setPartyOwnerService';
 import setVideoStateService from '../../../services/setVideoStateService';
+import GetSocketDataService from '../../../services/getSocketDataService';
 
 export default function connection(
     socket: socketio.Socket,
@@ -53,9 +54,21 @@ export default function connection(
         },
     );
 
-    socket.on('disconnect', () => {
-        console.log('client disconnected', socket.id);
+    socket.on('peer:ready', (data: { partyId: string; peerId: string }) => {
+        peerReady(io, data.partyId, data.peerId);
     });
+
+    socket.on('disconnect', () => disconnect(io, socket.id));
+}
+
+async function disconnect(io: socketio.Server, socketId: string) {
+    console.log('client disconnected', socketId);
+
+    const socketData = await container
+        .resolve(GetSocketDataService)
+        .execute({ socketId });
+
+    io.sockets.in(socketData.partyId).emit('peer:quit', socketData.peerId);
 }
 
 async function joinParty(
@@ -80,8 +93,6 @@ async function joinParty(
             .execute({ partyId, userId: +userId });
 
         socket.join(party.id);
-
-        socket.broadcast.to(party.id).emit('party:userJoined', peerId); // TODO: listen to this event and connect to peer
 
         socket.emit('party:joined', classToClass(party));
     } catch (err) {
@@ -153,6 +164,16 @@ async function setVideoState(
         });
 
         io.to(partyId).emit('player:updateState', classToClass(video));
+    } catch (err) {
+        console.log(err); // TODO: handle error
+    }
+}
+
+async function peerReady(io: socketio.Server, partyId: string, peerId: string) {
+    console.log('peer ready', peerId);
+
+    try {
+        io.to(partyId).emit('peer:joined', peerId);
     } catch (err) {
         console.log(err); // TODO: handle error
     }

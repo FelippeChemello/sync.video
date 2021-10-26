@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 
 import CreatePartyService from '../../../services/createPartyService';
-import GetPartyDataService from '../../../services/getPartyData';
+import GetPartyDataService from '../../../services/getPartyDataService';
 import AddParticipantService from '../../../services/addParticipantService';
 
 export default class PartyController {

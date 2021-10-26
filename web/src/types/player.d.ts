@@ -5,6 +5,7 @@ interface InterfaceParticipant {
 
 interface SocketData {
     socketId: string;
+    peerId: string;
     user: InterfaceParticipant;
 }
 
