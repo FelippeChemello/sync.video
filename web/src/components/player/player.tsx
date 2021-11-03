@@ -11,7 +11,7 @@ import ReactPlayer from 'react-player';
 import { Socket } from 'socket.io-client';
 import styled from 'styled-components';
 
-import { useAuth } from '../../hooks/Auth';
+import { useConfig } from '../../hooks/Config';
 
 import SeekBar from './Seekbar';
 import VolumeBar from './Volumebar';
@@ -146,7 +146,6 @@ export default function Player({
     videoId: videoIdOnLoadPartyData,
 }: PlayerProps) {
     const playerRef = useRef<ReactPlayer>(null);
-    const { user } = useAuth();
     const [url, setUrl] = useState<string>(playingUrl);
     const [videoId, setVideoId] = useState<number>(videoIdOnLoadPartyData || 0);
     const [duration, setDuration] = useState(0);
@@ -162,6 +161,8 @@ export default function Player({
         played: 0,
         playedSeconds: 0,
     });
+
+    const { handleConfigModal } = useConfig();
 
     useEffect(() => {
         handleSocketPlayerEvents();
@@ -219,8 +220,9 @@ export default function Player({
                 Math.floor(second - progress.playedSeconds),
             );
 
-            if (diffInSecondsFromOwner >= 1) { // TODO: Add another types of sync (via playback rate and calculating latency, then disregard it [EXPERIMENTAL])
-                playerRef.current.seekTo(second); 
+            if (diffInSecondsFromOwner >= 1) {
+                // TODO: Add another types of sync (via playback rate and calculating latency, then disregard it [EXPERIMENTAL])
+                playerRef.current.seekTo(second);
             }
         },
     );
@@ -285,19 +287,7 @@ export default function Player({
                     />
                 </Url>
                 <div>
-                    {/* TODO: Create Settings */}
-                    <BsGearFill
-                        onClick={() => {
-                            console.log('Trocando modo');
-
-                            // TODO: Remove useAuth() when we have a real settings page and a format to change owner
-
-                            socket.emit('party:changeOwner', {
-                                partyId,
-                                newOwnerId: user.id,
-                            });
-                        }}
-                    />
+                    <BsGearFill onClick={handleConfigModal} />
                 </div>
             </TopBar>
             <ReactPlayer

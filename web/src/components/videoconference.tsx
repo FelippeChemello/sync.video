@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Socket } from 'socket.io-client';
 import styled from 'styled-components';
 
-import Webcam from './webcam';
+import { useConfig } from '../hooks/Config';
 
 const Container = styled.div`
     position: relative;
@@ -30,8 +30,15 @@ export default function VideoConference({
     partyId,
 }: VideoConferenceProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [webcamStream, setWebcamStream] = useState<MediaStream | undefined>();
-    const peers: string[] = [peer.id];
+    const peers: string[] = [];
+
+    const { webcamStream } = useConfig();
+
+    useEffect(() => {
+        if (!webcamStream) return;
+
+        addVideoStream(webcamStream, peer.id);
+    }, [webcamStream]);
 
     useEffect(() => {
         if (!webcamStream || !peer || !socket) return;
@@ -114,11 +121,10 @@ export default function VideoConference({
         [containerRef],
     );
 
+    //TODO: Add self video via config video stream
     return (
         <>
-            <Container ref={containerRef}>
-                <Webcam setWebcamStream={setWebcamStream} />
-            </Container>
+            <Container ref={containerRef}></Container>
         </>
     );
 }

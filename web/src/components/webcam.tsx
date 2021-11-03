@@ -1,14 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, HTMLAttributes } from 'react';
 import VideoWebcam from 'react-webcam';
-import '@tensorflow/tfjs-core';
-import '@tensorflow/tfjs-converter';
-import '@tensorflow/tfjs-backend-webgl';
-import * as bodyPix from '@tensorflow-models/body-pix';
 import styled from 'styled-components';
+import {
+    SelfieSegmentation,
+    Results as SelfieSegmentationResults,
+} from '@mediapipe/selfie_segmentation'; // TODO: check requirements needed for support
+import { Camera } from '@mediapipe/camera_utils';
+
+import { useConfig } from '../hooks/Config';
 
 import loadImage from '../utils/loadImage';
 import sleep from '../utils/sleep';
-import { useAuth } from '../hooks/Auth';
+import { webcamBackgrounds } from '../utils/webcamBackgrounds';
 
 const Container = styled.div`
     position: relative;
@@ -39,72 +42,84 @@ const Container = styled.div`
     }
 `;
 
-type WebcamProps = {
-    setWebcamStream: (stream: MediaStream) => void;
-};
-
-type BackgroundType = 'normal' | 'blur' | 'image';
-
-export default function Webcam({ setWebcamStream }: WebcamProps) {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+export default function Webcam({ ...props }: HTMLAttributes<HTMLDivElement>) {
     const webcamRef = useRef<VideoWebcam>(null);
-    const [bodyPixNeuralNetwork, setBodyPixNeuralNetwork] = useState<
-        bodyPix.BodyPix | undefined
-    >();
-    const [hasInitializedWebcam, setHasInitializedWebcam] =
-        useState<boolean>(false);
-    const [backgroundType, setBackgroundType] =
-        useState<BackgroundType>('image'); // TODO: Initialize with normal and when bodypix model loaded, allow other types, if WebGL is available
-    const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>(
-        '../assets/cinema-bg.jpg', // TODO: add more images
-    );
-    const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement>();
-    // TODO: add warning when device doesn't have webcam or bodyPix (webGL or WASM) nor supported
+    const canvasRef = useRef(null);
+    const backgroundRef = useRef<HTMLImageElement>(null);
+    const backgroundTypeRef = useRef<WebcamBackgroundTypes>();
+    const selfieSegmentationRef = useRef<SelfieSegmentation>(null);
 
-    const { user } = useAuth(); // TODO: Remove this and where it is used in this page
-
-    useEffect(() => {
-        loadBodyPixModel();
-    }, []);
+    const {
+        webcamBackground,
+        virtualBackgroundSupported,
+        setWebcamBackground,
+        setWebcamStream,
+        webcamDeviceId,
+        microphoneDeviceId,
+    } = useConfig();
 
     useEffect(() => {
-        loadImage(backgroundImageUrl).then(setBackgroundImage);
-    }, [backgroundImageUrl]);
+        if (webcamBackground.type === 'image')
+            loadImage(webcamBackground.image).then(async image => {
+                backgroundRef.current = image;
+            });
+
+        backgroundTypeRef.current = webcamBackground.type;
+    }, [webcamBackground]);
 
     useEffect(() => {
-        // While bodypix and webcam isn't loaded, wait
-        if (!bodyPixNeuralNetwork || !hasInitializedWebcam) return;
+        if (!virtualBackgroundSupported) {
+            // Mock selfie segmentation if virtual background is not supported and someone try to force it
+            selfieSegmentationRef.current = {} as SelfieSegmentation;
 
-        initWebcam();
-    }, [bodyPixNeuralNetwork, hasInitializedWebcam]);
+            selfieSegmentationRef.current.send = async (_: any) => {
+                setWebcamBackground(webcamBackgrounds.camera[0]);
+            };
+            return;
+        }
 
-    async function loadBodyPixModel() {
-        console.log('Loading bodyPix model...');
+        selfieSegmentationRef.current = new SelfieSegmentation({
+            locateFile: file => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+            },
+        });
+        selfieSegmentationRef.current.setOptions({
+            modelSelection: 1,
+        });
+        selfieSegmentationRef.current.onResults(onSelfieSegmentationResults);
+    }, [virtualBackgroundSupported]);
 
-        const bodyPixModel = await bodyPix.load();
-        await sleep(1000);
+    useEffect(() => {
+        if (
+            typeof webcamRef.current === 'undefined' ||
+            webcamRef.current === null
+        )
+            return;
 
-        console.log('bodyPix model loaded!');
-        setBodyPixNeuralNetwork(bodyPixModel);
-    }
+        const camera = new Camera(webcamRef.current.video, {
+            onFrame,
+            width: 1280,
+            height: 720,
+        });
 
-    async function initWebcam() {
-        console.log('Initializing webcam...');
+        canvasRef.current.width = webcamRef.current.video.clientWidth;
+        canvasRef.current.height = webcamRef.current.video.clientHeight;
 
-        const webcam = webcamRef.current.video;
-        const canvas = canvasRef.current;
-
-        canvas.width = webcam.videoWidth;
-        canvas.height = webcam.videoHeight;
+        camera.start();
 
         unifyStreams();
+    }, [webcamRef]);
 
-        drawCanvas();
-    }
+    const unifyStreams = async () => {
+        do {
+            await sleep(100);
+        } while (!webcamRef.current.stream?.getAudioTracks());
 
-    async function unifyStreams() {
+        canvasRef.current.width = webcamRef.current.video.clientWidth;
+        canvasRef.current.height = webcamRef.current.video.clientHeight;
+
         const audio = webcamRef.current.stream.getAudioTracks();
-        const video = canvasRef.current.captureStream(60);
+        const video = canvasRef.current.captureStream(30);
 
         const mediaStream = new MediaStream();
 
@@ -113,83 +128,128 @@ export default function Webcam({ setWebcamStream }: WebcamProps) {
         );
 
         setWebcamStream(mediaStream);
-    }
+    };
 
-    async function drawCanvas() {
-        requestAnimationFrame(drawCanvas);
-
-        switch (backgroundType) {
+    const onFrame = async () => {
+        switch (backgroundTypeRef.current) {
             case 'blur':
-                await drawWithBlur();
-                break;
             case 'image':
-                await drawWithImage();
+                await selfieSegmentationRef.current.send({
+                    image: webcamRef.current.video,
+                });
                 break;
+
             case 'normal':
             default:
-                await drawWebcam();
+                await drawCameraOnCanvas();
                 break;
         }
-    }
+    };
 
-    async function drawWebcam() {
-        const webcam = webcamRef.current.video;
-        const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
+    const drawCameraOnCanvas = async () => {
+        const canvasCtx = canvasRef.current.getContext('2d');
 
-        context.drawImage(webcam, 0, 0, canvas.width, canvas.height);
-    }
+        canvasCtx.drawImage(
+            webcamRef.current.video,
+            0,
+            0,
+            canvasRef.current.width,
+            canvasRef.current.height,
+        );
+    };
 
-    async function drawWithImage() {
-        const webcam = webcamRef.current.video;
-        const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
+    const onSelfieSegmentationResults = (
+        results: SelfieSegmentationResults,
+    ) => {
+        const canvasCtx = canvasRef.current.getContext('2d');
+        canvasCtx.save();
 
-        const segmentation = await bodyPixNeuralNetwork.segmentPerson(webcam);
-        const mask = bodyPix.toMask(segmentation);
+        if (
+            backgroundTypeRef.current === 'image' &&
+            backgroundRef.current instanceof HTMLImageElement
+        ) {
+            canvasCtx.clearRect(
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height,
+            );
+            canvasCtx.drawImage(
+                results.segmentationMask,
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height,
+            );
 
-        const maskCanvas = document.createElement('canvas');
-        const tmpContext = maskCanvas.getContext('2d');
-        maskCanvas.width = canvas.width;
-        maskCanvas.height = canvas.height;
+            canvasCtx.globalCompositeOperation = 'source-in';
+            canvasCtx.drawImage(
+                results.image,
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height,
+            );
 
-        // Draw Mask
-        tmpContext.putImageData(mask, 0, 0);
-        context.drawImage(backgroundImage, 0, 0);
-        context.drawImage(webcam, 0, 0, canvas.width, canvas.height);
-        context.save();
-        context.globalCompositeOperation = 'destination-out'; // Remove Masked area from webcam
-        context.drawImage(maskCanvas, 0, 0, canvas.width, canvas.height);
-        context.restore();
+            canvasCtx.globalCompositeOperation = 'destination-atop';
 
-        context.save();
-        context.globalCompositeOperation = 'destination-over'; // Add image  below webcam
-        context.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-        context.restore();
+            canvasCtx.drawImage(
+                backgroundRef.current,
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height,
+            );
+        } else {
+            canvasCtx.drawImage(
+                results.image,
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height,
+            );
 
-        context.font = '72px Arial';
-        context.fillText(`${user.id}`, 10, 50);
-    }
+            // Make all pixels not in the segmentation mask transparent
+            canvasCtx.globalCompositeOperation = 'destination-atop';
+            canvasCtx.drawImage(
+                results.segmentationMask,
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height,
+            );
 
-    async function drawWithBlur() {
-        const canvas = canvasRef.current;
-        const webcam = webcamRef.current.video;
+            // Blur the context for all subsequent draws then set the raw image as the background
+            canvasCtx.filter = 'blur(12px)';
+            canvasCtx.globalCompositeOperation = 'destination-over';
+            canvasCtx.drawImage(
+                results.image,
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height,
+            );
+        }
 
-        const segmentation = await bodyPixNeuralNetwork.segmentPerson(webcam);
-
-        bodyPix.drawBokehEffect(canvas, webcam, segmentation, 14, 1, false);
-    }
+        canvasCtx.restore();
+    };
 
     return (
-        <Container>
+        <Container {...props}>
             <VideoWebcam
-                audio={true}
-                mirrored={true}
                 ref={webcamRef}
-                onLoadedData={() => setHasInitializedWebcam(true)}
-                height={480}
-                width={640}
+                audio={true}
                 muted={true}
+                onLoadedData={unifyStreams}
+                videoConstraints={{
+                    deviceId: webcamDeviceId,
+                    width: 1280,
+                    height: 720,
+                }}
+                audioConstraints={{
+                    deviceId: microphoneDeviceId,
+                    echoCancellation: true,
+                }}
             />
             <canvas ref={canvasRef} />
         </Container>

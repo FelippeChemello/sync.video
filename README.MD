@@ -21,6 +21,7 @@
 -   Criar 404
 -   Easter egg: Tetris multiplayer (https://www.youtube.com/watch?v=RoRlXxeozbQ) - Icone <MdVideogameAsset />
 -   Resize aside and video width on party -> https://stackoverflow.com/questions/26233180/resize-a-div-on-border-drag-and-drop-without-adding-extra-markup
+- Escolher entrada de audio e video https://developers.google.com/web/updates/2015/10/media-devices#demos
 
 -   Termos de serviço
 -   Segurança

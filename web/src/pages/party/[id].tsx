@@ -7,6 +7,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { parseCookies } from 'nookies';
 
 import api from '../../services/api';
+import { ConfigProvider } from '../../hooks/Config';
 import { useToast } from '../../hooks/Toast';
 import { useAuth } from '../../hooks/Auth';
 
@@ -14,6 +15,8 @@ import Loading from '../../components/loading';
 import Player from '../../components/player/player';
 import VideoConference from '../../components/videoconference';
 import { Container } from '../../styles/party';
+
+import Config from '../../components/config';
 
 export default function Party() {
     const { t } = useTranslation('common');
@@ -112,7 +115,7 @@ export default function Party() {
         });
 
         window.onunload = () => {
-            wsClient.emit('peer:quit', {partyId, peerId})
+            wsClient.emit('peer:quit', { partyId, peerId });
 
             wsClient.disconnect();
         };
@@ -135,33 +138,35 @@ export default function Party() {
     }
 
     return (
-        <Container>
-            <main>
-                <Player
-                    socket={wsClient}
-                    partyMode={socketMode}
-                    partyId={party.id}
-                    url={
-                        party.videos.filter(video => video.isActive)[0]?.url ||
-                        ''
-                    }
-                    currentTime={
-                        party.videos.filter(video => video.isActive)[0]
-                            ?.second || 0
-                    }
-                />
-            </main>
-            <aside>
-                <VideoConference
-                    peer={peerClient}
-                    socket={wsClient}
-                    partyId={partyId as string}
-                    peersAlreadyConnected={party.partiesUsersRelationship.map(
-                        user => user.peerId,
-                    )}
-                />
-            </aside>
-        </Container>
+        <ConfigProvider>
+            <Container>
+                <main>
+                    <Player
+                        socket={wsClient}
+                        partyMode={socketMode}
+                        partyId={party.id}
+                        url={
+                            party.videos.filter(video => video.isActive)[0]
+                                ?.url || ''
+                        }
+                        currentTime={
+                            party.videos.filter(video => video.isActive)[0]
+                                ?.second || 0
+                        }
+                    />
+                </main>
+                <aside>
+                    <VideoConference
+                        peer={peerClient}
+                        socket={wsClient}
+                        partyId={partyId as string}
+                        peersAlreadyConnected={party.partiesUsersRelationship.map(
+                            user => user.peerId,
+                        )}
+                    />
+                </aside>
+            </Container>
+        </ConfigProvider>
     );
 }
 
