@@ -54,6 +54,7 @@ const toastTypeVariations = {
     `,
 };
 
+//TODO: toast is being showed below the video on party page
 const Notification = styled(animated.div)<NotificationProps>`
     width: 360px;
     position: relative;

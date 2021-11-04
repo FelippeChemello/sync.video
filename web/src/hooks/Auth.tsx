@@ -9,6 +9,7 @@ interface InterfaceAuthContext {
     user: User;
     signIn: (data: SignInFormData) => Promise<void>;
     logOut: () => void;
+    token: string;
 }
 
 interface SignInFormData {
@@ -37,6 +38,7 @@ export function useAuth(): InterfaceAuthContext {
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState<User | null>(null);
+    const [token, setToken] = useState<string | null>(null);
     const isAuthenticated = !!user;
 
     useEffect(() => {
@@ -45,6 +47,8 @@ export function AuthProvider({ children }) {
         api.defaults.headers['Authorization'] = `Bearer ${token}`;
 
         if (token) {
+            setToken(token);
+
             api.get('users')
                 .then(response => {
                     setUser(response.data);
@@ -68,6 +72,8 @@ export function AuthProvider({ children }) {
 
         api.defaults.headers['Authorization'] = `Bearer ${token}`;
 
+        setToken(token);
+
         Router.push('/dashboard');
     }
 
@@ -82,7 +88,9 @@ export function AuthProvider({ children }) {
     }
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, signIn, user, logOut }}>
+        <AuthContext.Provider
+            value={{ isAuthenticated, signIn, user, logOut, token }}
+        >
             {children}
         </AuthContext.Provider>
     );

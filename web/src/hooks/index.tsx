@@ -1,5 +1,5 @@
-import { AuthProvider } from '../hooks/Auth';
-import { ToastProvider } from '../hooks/Toast';
+import { AuthProvider } from './Auth';
+import { ToastProvider } from './Toast';
 
 export default function AppProvider({ children }) {
     return (

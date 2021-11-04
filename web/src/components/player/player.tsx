@@ -8,10 +8,10 @@ import {
 } from 'react-icons/bs';
 import { MdOpenInBrowser, MdOndemandVideo } from 'react-icons/md';
 import ReactPlayer from 'react-player';
-import { Socket } from 'socket.io-client';
 import styled from 'styled-components';
 
-import { useConfig } from '../../hooks/Config';
+import { useConfig } from '../../hooks/Authenticated/Config';
+import { useSocketIo } from '../../hooks/Authenticated/SocketIo';
 
 import SeekBar from './Seekbar';
 import VolumeBar from './Volumebar';
@@ -129,8 +129,6 @@ const SeekBarContainer = styled.div`
 `;
 
 interface PlayerProps {
-    socket: Socket;
-    partyMode: 'passive' | 'active';
     partyId: string;
     url?: string;
     currentTime?: number;
@@ -138,8 +136,6 @@ interface PlayerProps {
 }
 
 export default function Player({
-    socket,
-    partyMode,
     partyId,
     url: playingUrl,
     currentTime: currentTimeOnLoadPartyData,
@@ -163,80 +159,67 @@ export default function Player({
     });
 
     const { handleConfigModal } = useConfig();
+    const { socketAddListener, socketMode, socketEmit } = useSocketIo();
 
     useEffect(() => {
-        handleSocketPlayerEvents();
-    }, [socket, partyMode, playerRef]);
+        document.querySelectorAll('video');
+    }, []);
 
     useEffect(() => {
-        setCanPip(ReactPlayer.canEnablePIP(url));
+        setCanPip(ReactPlayer.canEnablePIP(url)); // TODO: add this option to Config modal
     }, [url]);
 
     useEffect(() => {
-        console.log('currentTimeOnLoadPartyData', currentTimeOnLoadPartyData);
-
         if (currentTimeOnLoadPartyData) {
             playerRef.current.seekTo(currentTimeOnLoadPartyData);
         }
     }, [currentTimeOnLoadPartyData]);
 
-    const handleSocketPlayerEvents = useCallback(() => {
-        if (!socket) return;
+    useEffect(() => {
+        socketAddListener(
+            'player:ready',
+            ({ second, url, id }: InterfaceVideo) => {
+                setVideoId(id);
 
-        if (socket.hasListeners('player:ready')) socket.off('player:ready');
-        socket.on('player:ready', ({ second, url, id }: InterfaceVideo) => {
-            setVideoId(id);
+                if (socketMode === 'active') return;
 
-            if (partyMode === 'active') return;
+                setUrl(url);
 
-            setUrl(url);
-
-            if (!playerRef.current) return;
-
-            playerRef.current.seekTo(second);
-            setDuration(playerRef.current.getDuration());
-        });
-    }, [socket, playerRef, partyMode]);
-
-    if (socket.hasListeners('player:updateState'))
-        socket.off('player:updateState');
-    socket.on(
-        'player:updateState',
-        ({
-            second,
-            isPlaying: socketIsPlaying,
-            playbackRate: socketPlaybackRate,
-        }: InterfaceVideo) => {
-            if (partyMode === 'active') return;
-
-            console.log('receive update');
-
-            setIsPlaying(socketIsPlaying);
-            setPlaybackRate(socketPlaybackRate);
-
-            if (!playerRef.current) return;
-
-            const diffInSecondsFromOwner = Math.abs(
-                Math.floor(second - progress.playedSeconds),
-            );
-
-            if (diffInSecondsFromOwner >= 1) {
-                // TODO: Add another types of sync (via playback rate and calculating latency, then disregard it [EXPERIMENTAL])
                 playerRef.current.seekTo(second);
-            }
-        },
-    );
+                setDuration(playerRef.current.getDuration());
+            },
+        );
+
+        socketAddListener(
+            'player:updateState',
+            ({
+                second,
+                isPlaying: socketIsPlaying,
+                playbackRate: socketPlaybackRate,
+            }: InterfaceVideo) => {
+                if (socketMode === 'active') return;
+
+                setIsPlaying(socketIsPlaying);
+                setPlaybackRate(socketPlaybackRate);
+
+                const diffInSecondsFromOwner = Math.abs(
+                    Math.floor(second - progress.playedSeconds),
+                );
+
+                if (diffInSecondsFromOwner >= 1) {
+                    // TODO: Add another types of sync (via playback rate and calculating latency, then disregard it [EXPERIMENTAL])
+                    playerRef.current.seekTo(second);
+                }
+            },
+        );
+    }, [socketMode]);
 
     const handlePlayPause = (toState: 'play' | 'pause') => {
-        console.log(toState);
-
-        if (partyMode === 'passive') return;
+        if (socketMode === 'passive') return;
 
         setIsPlaying(toState === 'play');
 
-        console.log('Send update');
-
-        socket.emit('player:updateState', {
+        socketEmit('player:updateState', {
             partyId,
             isPlaying: toState === 'play',
             playbackRate,
@@ -248,11 +231,9 @@ export default function Player({
     const handleProgress = (progressData: InterfaceProgress) => {
         setProgress(progressData);
 
-        if (partyMode === 'passive') return;
+        if (socketMode === 'passive') return;
 
-        console.log('Send update');
-
-        socket.emit('player:updateState', {
+        socketEmit('player:updateState', {
             partyId,
             isPlaying,
             playbackRate,
@@ -262,10 +243,10 @@ export default function Player({
     };
 
     return (
-        <Container>
+        <Container id="player">
             <TopBar>
                 <Url>
-                    {partyMode === 'active' ? (
+                    {socketMode === 'active' ? (
                         <MdOpenInBrowser
                             width="16"
                             // TODO: On Click open modal and upload file via p2p
@@ -278,12 +259,12 @@ export default function Player({
                         value={url}
                         onChange={e => setUrl(e.target.value)}
                         placeholder={
-                            partyMode === 'active' // TODO: i18n
+                            socketMode === 'active' // TODO: i18n
                                 ? 'Enter video URL here or click on Icon to upload your file'
                                 : 'Waiting for party owner to input video'
                         }
-                        disabled={partyMode === 'passive'}
-                        readOnly={partyMode === 'passive'}
+                        disabled={socketMode === 'passive'}
+                        readOnly={socketMode === 'passive'}
                     />
                 </Url>
                 <div>
@@ -301,35 +282,34 @@ export default function Player({
                 onProgress={handleProgress}
                 onStart={() => handlePlayPause('play')}
                 onReady={() => {
-                    if (partyMode === 'passive') return;
+                    if (socketMode === 'passive') return;
 
-                    socket.emit('player:ready', {
+                    socketEmit('player:ready', {
                         url, // TODO: make it work with file
                         partyId,
                     });
                 }}
                 onPlay={() => handlePlayPause('play')}
                 onPause={() => handlePlayPause('pause')}
-                muted={true} // TODO: remove this
                 onSeek={data => console.warn(data)} // TODO: Remove this line, it isn't doing nothing and send seek event through socket
                 loop={false}
                 playbackRate={playbackRate}
                 pip={isPip}
                 style={{
                     flex: 1,
-                    pointerEvents: partyMode === 'passive' ? 'none' : 'all',
+                    pointerEvents: socketMode === 'passive' ? 'none' : 'all',
                 }}
 
-                // TODO: Sync playback and progress with Socket
                 // TODO: Show image when without url (or when url is not valid)
-                // TODO: Test file play/pause clicking on video
+                // TODO: Test file play/pause clicking on video (don't work with file. ex: https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_1920_18MG.mp4)
                 // TODO: Add button to change playback
                 // TODO: When buffer of someone is low than 5 seconds, stop all participant while it get 20 seconds
             />
             <Controls>
                 <PlayButton
                     style={{
-                        pointerEvents: partyMode === 'passive' ? 'none' : 'all',
+                        pointerEvents:
+                            socketMode === 'passive' ? 'none' : 'all',
                     }}
                 >
                     {isPlaying ? (
@@ -340,7 +320,8 @@ export default function Player({
                 </PlayButton>
                 <SeekBarContainer
                     style={{
-                        pointerEvents: partyMode === 'passive' ? 'none' : 'all',
+                        pointerEvents:
+                            socketMode === 'passive' ? 'none' : 'all',
                     }}
                 >
                     <SeekBar

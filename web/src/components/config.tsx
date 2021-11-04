@@ -9,7 +9,7 @@ import {
     BsFillGearFill,
 } from 'react-icons/bs';
 
-import { useConfig } from '../hooks/Config';
+import { useConfig } from '../hooks/Authenticated/Config';
 import { webcamBackgrounds } from '../utils/webcamBackgrounds';
 
 import Webcam from './webcam';
@@ -140,6 +140,11 @@ export default function Config() {
         setWebcamBackground,
         setMicrophoneDeviceId,
         setWebcamDeviceId,
+
+        toggleMicrophone,
+        toggleWebcam,
+        isMicrophoneEnabled,
+        isWebcamEnabled,
     } = useConfig();
 
     const handleDevices = useCallback((mediaDevices: MediaDeviceInfo[]) => {
@@ -263,6 +268,20 @@ export default function Config() {
                                 </div>
                             </>
                         )}
+                    </Menu>
+                    <Menu
+                        style={{
+                            display: activeMenu === 'general' ? 'flex' : 'none',
+                        }}
+                    >
+                        <button onClick={toggleWebcam}>
+                            toggle camera (
+                            {isWebcamEnabled ? 'enabled' : 'disabled'})
+                        </button>
+                        <button onClick={toggleMicrophone}>
+                            toggle microphone (
+                            {isMicrophoneEnabled ? 'enabled' : 'disabled'})
+                        </button>
                     </Menu>
                 </Body>
             </Content>

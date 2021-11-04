@@ -7,7 +7,7 @@ import {
 } from '@mediapipe/selfie_segmentation'; // TODO: check requirements needed for support
 import { Camera } from '@mediapipe/camera_utils';
 
-import { useConfig } from '../hooks/Config';
+import { useConfig } from '../hooks/Authenticated/Config';
 
 import loadImage from '../utils/loadImage';
 import sleep from '../utils/sleep';
@@ -42,6 +42,7 @@ const Container = styled.div`
     }
 `;
 
+// TODO: test on a device without webcam
 export default function Webcam({ ...props }: HTMLAttributes<HTMLDivElement>) {
     const webcamRef = useRef<VideoWebcam>(null);
     const canvasRef = useRef(null);
@@ -56,6 +57,7 @@ export default function Webcam({ ...props }: HTMLAttributes<HTMLDivElement>) {
         setWebcamStream,
         webcamDeviceId,
         microphoneDeviceId,
+        isWebcamEnabled,
     } = useConfig();
 
     useEffect(() => {
@@ -113,7 +115,7 @@ export default function Webcam({ ...props }: HTMLAttributes<HTMLDivElement>) {
     const unifyStreams = async () => {
         do {
             await sleep(100);
-        } while (!webcamRef.current.stream?.getAudioTracks());
+        } while (!webcamRef?.current?.stream?.getAudioTracks());
 
         canvasRef.current.width = webcamRef.current.video.clientWidth;
         canvasRef.current.height = webcamRef.current.video.clientHeight;
@@ -147,6 +149,8 @@ export default function Webcam({ ...props }: HTMLAttributes<HTMLDivElement>) {
     };
 
     const drawCameraOnCanvas = async () => {
+        if (!canvasRef.current) return;
+
         const canvasCtx = canvasRef.current.getContext('2d');
 
         canvasCtx.drawImage(
@@ -161,6 +165,8 @@ export default function Webcam({ ...props }: HTMLAttributes<HTMLDivElement>) {
     const onSelfieSegmentationResults = (
         results: SelfieSegmentationResults,
     ) => {
+        if (!canvasRef.current) return;
+
         const canvasCtx = canvasRef.current.getContext('2d');
         canvasCtx.save();
 

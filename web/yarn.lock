@@ -2179,11 +2179,6 @@ foreach@^2.0.5:
   resolved "https://registry.yarnpkg.com/foreach/-/foreach-2.0.5.tgz#0bee005018aeb260d0a3af3ae658dd0136ec1b99"
   integrity sha1-C+4AUBiusmDQo6865ljdATbsG5k=
 
-fpsmeter@^0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/fpsmeter/-/fpsmeter-0.3.1.tgz#f134d41a1af06a717b35523ee698552d7f0f3ce5"
-  integrity sha1-8TTUGhrwanF7NVI+5phVLX8PPOU=
-
 fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"

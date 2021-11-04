@@ -14,6 +14,7 @@ export default function connection(
     io: socketio.Server,
 ) {
     console.log('client connected', socket.id);
+    socket.emit('connect_success');
 
     socket.on(
         'party:join',
@@ -68,7 +69,7 @@ async function disconnect(io: socketio.Server, socketId: string) {
         .resolve(GetSocketDataService)
         .execute({ socketId });
 
-    io.sockets.in(socketData.partyId).emit('peer:quit', socketData.peerId);
+    io.sockets.in(socketData.partyId).emit('peer:leave', socketData.peerId);
 }
 
 async function joinParty(
@@ -77,7 +78,7 @@ async function joinParty(
     peerId: string,
 ) {
     if (!partyId || !peerId) {
-        socket.emit('party:error');
+        socket.emit('party:error', 'Missing partyId or PeerId');
         return;
     }
 

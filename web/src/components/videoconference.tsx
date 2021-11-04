@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Socket } from 'socket.io-client';
 import styled from 'styled-components';
 
-import { useConfig } from '../hooks/Config';
+import { useConfig } from '../hooks/Authenticated/Config';
+import { usePeerJs } from '../hooks/Authenticated/PeerJs';
+import { useSocketIo } from '../hooks/Authenticated/SocketIo';
+import sleep from '../utils/sleep';
 
 const Container = styled.div`
     position: relative;
@@ -17,41 +20,35 @@ const Container = styled.div`
 `;
 
 type VideoConferenceProps = {
-    peer: any;
-    socket: Socket;
-    peersAlreadyConnected: string[];
     partyId: string;
 };
 
-export default function VideoConference({
-    peer,
-    socket,
-    peersAlreadyConnected,
-    partyId,
-}: VideoConferenceProps) {
+// TODO: test if a new user, when connects, is called by already connected users
+// TODO: change to data flow instead of stream, but when enable camera, change to stream flow
+export default function VideoConference({ partyId }: VideoConferenceProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const peers: string[] = [];
+    const peers = useRef<string[]>([]);
 
     const { webcamStream } = useConfig();
+    const { socketAddListener, socketEmit } = useSocketIo();
+    const { peer } = usePeerJs();
 
     useEffect(() => {
         if (!webcamStream) return;
 
         addVideoStream(webcamStream, peer.id);
-    }, [webcamStream]);
 
-    useEffect(() => {
-        if (!webcamStream || !peer || !socket) return;
+        socketAddListener('peer:joined', (joinedPeerId: string) => {
+            console.log(`Adding ${joinedPeerId}`);
+            addPeer(joinedPeerId);
+        });
 
-        if (socket.hasListeners('peer:joined')) {
-            socket.off('peer:joined');
-        }
-
-        console.log('peer', peer);
+        socketAddListener('peer:leave', (leftPeerId: string) => {
+            console.log(`Removing ${leftPeerId}`);
+            removeVideoStream(leftPeerId);
+        });
 
         peer.on('call', call => {
-            console.log('Peer received call and answer');
-
             call.answer(webcamStream);
 
             call.on('stream', (remoteStream: MediaStream) => {
@@ -59,69 +56,56 @@ export default function VideoConference({
             });
         });
 
-        socket.on('peer:joined', (joinedPeerId: string) => {
-            console.log('joinedPeerId', joinedPeerId, webcamStream);
+        socketEmit('peer:ready', { partyId, peerId: peer.id });
+    }, [webcamStream]);
 
-            addPeer(joinedPeerId, webcamStream);
+    useEffect(() => {}, []);
+
+    const addPeer = (peerIdToConnect: string) => {
+        const call = peer.call(peerIdToConnect, webcamStream);
+
+        call.on('open', () =>
+            console.log(`connection opened with ${peerIdToConnect}`),
+        );
+
+        call.on('stream', (remoteStream: MediaStream) => {
+            addVideoStream(remoteStream, call.peer);
         });
+    };
 
-        socket.on('peer:quit', (quittedPeerId: string) => {
-            console.log('quittedPeerId', quittedPeerId);
+    const addVideoStream = async (stream: MediaStream, peerId: string) => {
+        await waitForContainer();
 
-            removeVideoStream(quittedPeerId);
-        });
+        if (peers.current.includes(peerId)) return;
 
-        socket.emit('peer:ready', { partyId, peerId: peer.id });
-    }, [socket, peer, webcamStream]);
-
-    const addPeer = useCallback(
-        (peerIdToConnect: string, myStream: MediaStream) => {
-            const call = peer.call(peerIdToConnect, myStream);
-
-            call.on('stream', (stream: MediaStream) => {
-                console.log('Stream');
-
-                addVideoStream(stream, peerIdToConnect);
-            });
-
-            call.on('error', () => {
-                console.log('Ocorreu um erro no call');
-            }); // TODO: handle this
-        },
-        [],
-    );
-
-    const addVideoStream = (stream: MediaStream, peerId: string) => {
-        if (!containerRef.current) return;
-
-        if (peers.includes(peerId)) return;
-
-        peers.push(peerId);
-
-        console.log('Adicionando video ', stream.id);
+        console.log(`Added ${peerId}`);
+        peers.current.push(peerId);
 
         const video = document.createElement('video');
         video.id = peerId;
         video.srcObject = stream;
-        video.muted = false; // TODO: remove this
+
         video.addEventListener('loadedmetadata', () => {
             video.play();
         });
+
         containerRef.current.appendChild(video);
     };
 
-    const removeVideoStream = useCallback(
-        peerId => {
-            console.log('remover', peerId);
+    const removeVideoStream = async (peerId: string) => {
+        await waitForContainer();
 
-            const video = document.getElementById(peerId);
+        const video = document.getElementById(peerId);
 
-            containerRef.current.removeChild(video);
-        },
-        [containerRef],
-    );
+        containerRef.current.removeChild(video);
+    };
 
-    //TODO: Add self video via config video stream
+    const waitForContainer = async () => {
+        while (!containerRef?.current) {
+            await sleep(100);
+        }
+    };
+
     return (
         <>
             <Container ref={containerRef}></Container>
