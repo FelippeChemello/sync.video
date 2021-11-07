@@ -36,13 +36,9 @@ type Props = {
 export default function Party({ partyId }: Props) {
     const [party, setParty] = useState<InterfaceParty>();
 
-    const {
-        socketAddListener,
-        socketEmit,
-        socketConnected,
-        setSocketMode,
-        socketMode,
-    } = useSocketIo();
+    const { isWebcamStreamAvailable } = useConfig();
+    const { socketAddListener, socketEmit, socketConnected, setSocketMode } =
+        useSocketIo();
     const { peer, peerReady } = usePeerJs();
     const { addToast } = useToast();
     const { user } = useAuth();
@@ -97,7 +93,9 @@ export default function Party({ partyId }: Props) {
                 />
             </main>
             <aside>
-                <VideoConference partyId={party.id} />
+                {isWebcamStreamAvailable && (
+                    <VideoConference partyId={party.id} />
+                )}
             </aside>
         </Container>
     );

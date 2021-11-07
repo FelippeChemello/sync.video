@@ -39,13 +39,19 @@ const Container = styled.div`
         transform: scaleX(-1);
         background-size: cover;
         border-radius: 0.5rem;
+        /* visibility: hidden; */
     }
 `;
 
-// TODO: test on a device without webcam
+// TODO: test on a device without webcam and blocking browser access to camera and microphone
+// TODO: HELP - When closing and opening camera many times, after 7/8 times, rises ram usage and slow down rendering
+// TODO: HELP - When disable camera, then mic, mic cannot be disabled/enabled. When disable mic, then camera, camera led doesn't turn off, but stream stops. When disable mic, cannot be enabled.
 export default function Webcam({ ...props }: HTMLAttributes<HTMLDivElement>) {
-    const webcamRef = useRef<VideoWebcam>(null);
+    const webcamRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef(null);
+    const audioTracks = useRef<MediaStreamTrack[]>([]);
+    const originalVideoTracks = useRef<MediaStreamTrack[]>([]);
+    const unifiedStream = useRef<MediaStream>(new MediaStream());
     const backgroundRef = useRef<HTMLImageElement>(null);
     const backgroundTypeRef = useRef<WebcamBackgroundTypes>();
     const selfieSegmentationRef = useRef<SelfieSegmentation>(null);
@@ -54,11 +60,58 @@ export default function Webcam({ ...props }: HTMLAttributes<HTMLDivElement>) {
         webcamBackground,
         virtualBackgroundSupported,
         setWebcamBackground,
-        setWebcamStream,
         webcamDeviceId,
         microphoneDeviceId,
         isWebcamEnabled,
+        isMicrophoneEnabled,
+        webcamStream,
+        setIsWebcamStreamAvailable,
     } = useConfig();
+
+    useEffect(() => {
+        onFrame();
+    }, []);
+
+    useEffect(() => {
+        if (!isWebcamEnabled) {
+            originalVideoTracks.current.forEach(track => {
+                track.enabled = false;
+                track.stop();
+            });
+        }
+
+        if (!isMicrophoneEnabled) {
+            audioTracks.current.forEach(track => {
+                track.enabled = false;
+                track.stop();
+            });
+        }
+
+        if (!isMicrophoneEnabled && !isWebcamEnabled) {
+            alert('Microfone e video não habilitados');
+            return;
+        }
+
+        navigator.mediaDevices
+            .getUserMedia({
+                audio: isMicrophoneEnabled
+                    ? { deviceId: microphoneDeviceId, echoCancellation: true }
+                    : false,
+                video: isWebcamEnabled
+                    ? { deviceId: webcamDeviceId, width: 1280, height: 720 }
+                    : false,
+            })
+            .then(stream => {
+                webcamRef.current.srcObject = stream;
+                originalVideoTracks.current = stream.getVideoTracks();
+                audioTracks.current = stream.getAudioTracks();
+
+                webcamRef.current.play();
+
+                unifyStreams();
+            })
+            .catch(err => console.error(err)); //TODO: handle error
+    }, [isWebcamEnabled, isMicrophoneEnabled]);
 
     useEffect(() => {
         if (webcamBackground.type === 'image')
@@ -91,70 +144,57 @@ export default function Webcam({ ...props }: HTMLAttributes<HTMLDivElement>) {
         selfieSegmentationRef.current.onResults(onSelfieSegmentationResults);
     }, [virtualBackgroundSupported]);
 
-    useEffect(() => {
-        if (
-            typeof webcamRef.current === 'undefined' ||
-            webcamRef.current === null
-        )
-            return;
-
-        const camera = new Camera(webcamRef.current.video, {
-            onFrame,
-            width: 1280,
-            height: 720,
-        });
-
-        canvasRef.current.width = webcamRef.current.video.clientWidth;
-        canvasRef.current.height = webcamRef.current.video.clientHeight;
-
-        camera.start();
-
-        unifyStreams();
-    }, [webcamRef]);
-
     const unifyStreams = async () => {
-        do {
-            await sleep(100);
-        } while (!webcamRef?.current?.stream?.getAudioTracks());
-
-        canvasRef.current.width = webcamRef.current.video.clientWidth;
-        canvasRef.current.height = webcamRef.current.video.clientHeight;
-
-        const audio = webcamRef.current.stream.getAudioTracks();
         const video = canvasRef.current.captureStream(30);
 
-        const mediaStream = new MediaStream();
+        unifiedStream.current = new MediaStream();
 
-        [...audio, ...video.getTracks()].forEach(track =>
-            mediaStream.addTrack(track),
-        );
+        for (const track of [...audioTracks.current, ...video.getTracks()]) {
+            unifiedStream.current.addTrack(track);
+        }
 
-        setWebcamStream(mediaStream);
+        console.log('unifiedStream', unifiedStream.current.getTracks());
+
+        webcamStream.current = unifiedStream.current;
+
+        setIsWebcamStreamAvailable(true);
     };
 
+    // TODO: handle disable camera when background type is enabled
     const onFrame = async () => {
-        switch (backgroundTypeRef.current) {
-            case 'blur':
-            case 'image':
-                await selfieSegmentationRef.current.send({
-                    image: webcamRef.current.video,
-                });
-                break;
+        while (true) {
+            if (!isWebcamEnabled) {
+                console.log('EPA');
+                return;
+            }
 
-            case 'normal':
-            default:
-                await drawCameraOnCanvas();
-                break;
+            switch (backgroundTypeRef.current) {
+                case 'blur':
+                case 'image':
+                    await selfieSegmentationRef.current.send({
+                        image: webcamRef.current,
+                    });
+
+                    break;
+
+                case 'normal':
+                default:
+                    await drawCameraOnCanvas();
+                    break;
+            }
+
+            await sleep(1000 / 30);
+            console.log('frame');
         }
     };
 
     const drawCameraOnCanvas = async () => {
-        if (!canvasRef.current) return;
+        if (!canvasRef.current || !webcamRef.current) return;
 
         const canvasCtx = canvasRef.current.getContext('2d');
 
         canvasCtx.drawImage(
-            webcamRef.current.video,
+            webcamRef.current,
             0,
             0,
             canvasRef.current.width,
@@ -165,7 +205,7 @@ export default function Webcam({ ...props }: HTMLAttributes<HTMLDivElement>) {
     const onSelfieSegmentationResults = (
         results: SelfieSegmentationResults,
     ) => {
-        if (!canvasRef.current) return;
+        if (!canvasRef.current || !webcamRef.current) return;
 
         const canvasCtx = canvasRef.current.getContext('2d');
         canvasCtx.save();
@@ -242,22 +282,14 @@ export default function Webcam({ ...props }: HTMLAttributes<HTMLDivElement>) {
 
     return (
         <Container {...props}>
-            <VideoWebcam
+            <video
                 ref={webcamRef}
-                audio={true}
+                controls
+                width={1280}
+                height={720}
                 muted={true}
-                onLoadedData={unifyStreams}
-                videoConstraints={{
-                    deviceId: webcamDeviceId,
-                    width: 1280,
-                    height: 720,
-                }}
-                audioConstraints={{
-                    deviceId: microphoneDeviceId,
-                    echoCancellation: true,
-                }}
             />
-            <canvas ref={canvasRef} />
+            <canvas ref={canvasRef} width={1280} height={720} />
         </Container>
     );
 }

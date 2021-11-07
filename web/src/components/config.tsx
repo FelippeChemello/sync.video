@@ -233,6 +233,8 @@ export default function Config() {
                                     maxMenuHeight={128}
                                 />
 
+                                {/* TODO: allow to user to select only if virtualBackgroundSupported true */}
+
                                 <h2>Efeitos de câmera</h2>
                                 <h3>Remover efeitos ou adicionar desfoque</h3>
                                 <div style={{ display: 'flex', gap: '1rem' }}>

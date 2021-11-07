@@ -1,4 +1,11 @@
-import { createContext, useState, useEffect, useContext } from 'react';
+import {
+    createContext,
+    useState,
+    useEffect,
+    useContext,
+    useRef,
+    MutableRefObject,
+} from 'react';
 
 import checkWasmSupport from '../../utils/checkWasmSupport';
 import checkWebGlSupport from '../../utils/checkWebGLSupport';
@@ -13,8 +20,9 @@ type InterfaceConfigContext = {
     isConfigModalOpen: boolean;
     handleConfigModal: () => void;
 
-    webcamStream: MediaStream;
-    setWebcamStream: (stream: MediaStream) => void;
+    webcamStream: MutableRefObject<MediaStream>;
+    isWebcamStreamAvailable: boolean;
+    setIsWebcamStreamAvailable: (isWebcamStreamAvailable: boolean) => void;
 
     webcamBackground: WebcamBackgroundTypesDisplay;
     setWebcamBackground: (background: WebcamBackgroundTypesDisplay) => void;
@@ -47,7 +55,9 @@ export function useConfig(): InterfaceConfigContext {
 export function ConfigProvider({ children }) {
     const [virtualBackgroundSupported, setVirtualBackgroundSupported] =
         useState(false);
-    const [webcamStream, setWebcamStream] = useState<MediaStream>();
+    const webcamStream = useRef<MediaStream>();
+    const [isWebcamStreamAvailable, setIsWebcamStreamAvailable] =
+        useState(false);
     const [webcamBackground, setWebcamBackground] =
         useState<WebcamBackgroundTypesDisplay>(webcamBackgrounds.camera[0]);
     const [webcamDeviceId, setWebcamDeviceId] = useState<string>();
@@ -78,66 +88,19 @@ export function ConfigProvider({ children }) {
         setIsConfigModalOpen(!isConfigModalOpen);
     };
 
-    const mute = () => {
-        setIsMicrophoneEnabled(false);
-
-        if (webcamStream) {
-            const audioTracks = webcamStream.getAudioTracks();
-            audioTracks.forEach(track => {
-                track.enabled = false;
-            });
-        }
-    };
-
-    const unmute = () => {
-        setIsMicrophoneEnabled(true);
-
-        if (webcamStream) {
-            const audioTracks = webcamStream.getAudioTracks();
-            audioTracks.forEach(track => {
-                track.enabled = true;
-            });
-        }
-    };
-
     const toggleMicrophone = () => {
         if (isMicrophoneEnabled) {
-            mute();
+            setIsMicrophoneEnabled(false);
         } else {
-            unmute();
-        }
-    };
-
-    const disableVideo = () => {
-        setIsWebcamEnabled(false);
-
-        if (webcamStream) {
-            const videoTracks = webcamStream.getVideoTracks();
-            videoTracks.forEach(track => {
-                console.log('removing', track);
-
-                webcamStream.removeTrack(track);
-            });
-        }
-    };
-
-    const enableVideo = () => {
-        setIsWebcamEnabled(true);
-
-        if (webcamStream) {
-            const videoTracks = webcamStream.getVideoTracks();
-
-            videoTracks.forEach(track => {
-                track.enabled = true;
-            });
+            setIsMicrophoneEnabled(true);
         }
     };
 
     const toggleWebcam = () => {
         if (isWebcamEnabled) {
-            disableVideo();
+            setIsWebcamEnabled(false);
         } else {
-            enableVideo();
+            setIsWebcamEnabled(true);
         }
     };
 
@@ -145,7 +108,6 @@ export function ConfigProvider({ children }) {
         <ConfigContext.Provider
             value={{
                 virtualBackgroundSupported,
-                setWebcamStream,
                 webcamStream,
                 setWebcamBackground,
                 webcamBackground,
@@ -160,6 +122,8 @@ export function ConfigProvider({ children }) {
                 isWebcamEnabled,
                 toggleMicrophone,
                 toggleWebcam,
+                isWebcamStreamAvailable,
+                setIsWebcamStreamAvailable,
             }}
         >
             <ConfigModal />

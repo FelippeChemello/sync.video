@@ -23,8 +23,6 @@ type VideoConferenceProps = {
     partyId: string;
 };
 
-// TODO: test if a new user, when connects, is called by already connected users
-// TODO: change to data flow instead of stream, but when enable camera, change to stream flow
 export default function VideoConference({ partyId }: VideoConferenceProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const peers = useRef<string[]>([]);
@@ -34,9 +32,7 @@ export default function VideoConference({ partyId }: VideoConferenceProps) {
     const { peer } = usePeerJs();
 
     useEffect(() => {
-        if (!webcamStream) return;
-
-        addVideoStream(webcamStream, peer.id);
+        addVideoStream(webcamStream.current, peer.id);
 
         socketAddListener('peer:joined', (joinedPeerId: string) => {
             console.log(`Adding ${joinedPeerId}`);
@@ -49,7 +45,7 @@ export default function VideoConference({ partyId }: VideoConferenceProps) {
         });
 
         peer.on('call', call => {
-            call.answer(webcamStream);
+            call.answer(webcamStream.current);
 
             call.on('stream', (remoteStream: MediaStream) => {
                 addVideoStream(remoteStream, call.peer);
@@ -57,12 +53,12 @@ export default function VideoConference({ partyId }: VideoConferenceProps) {
         });
 
         socketEmit('peer:ready', { partyId, peerId: peer.id });
-    }, [webcamStream]);
+    }, []);
 
     useEffect(() => {}, []);
 
     const addPeer = (peerIdToConnect: string) => {
-        const call = peer.call(peerIdToConnect, webcamStream);
+        const call = peer.call(peerIdToConnect, webcamStream.current);
 
         call.on('open', () =>
             console.log(`connection opened with ${peerIdToConnect}`),
@@ -78,12 +74,13 @@ export default function VideoConference({ partyId }: VideoConferenceProps) {
 
         if (peers.current.includes(peerId)) return;
 
-        console.log(`Added ${peerId}`);
+        console.log(`Added ${peerId}`, stream);
         peers.current.push(peerId);
 
         const video = document.createElement('video');
         video.id = peerId;
         video.srcObject = stream;
+        video.autoplay = true;
 
         video.addEventListener('loadedmetadata', () => {
             video.play();
