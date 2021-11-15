@@ -4,10 +4,10 @@ import { SocketIoProvider } from './SocketIo';
 
 export default function AuthenticatedAppProvider({ children }) {
     return (
-        <ConfigProvider>
-            <SocketIoProvider>
-                <PeerJsProvider>{children}</PeerJsProvider>
-            </SocketIoProvider>
-        </ConfigProvider>
+        // <ConfigProvider>
+        <SocketIoProvider>
+            <PeerJsProvider>{children}</PeerJsProvider>
+        </SocketIoProvider>
+        // </ConfigProvider>
     );
 }

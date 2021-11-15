@@ -46,7 +46,7 @@ export function SocketIoProvider({ children }) {
     useEffect(() => {
         if (socket.current instanceof Socket || !token) return;
 
-        const socketIo = io(environmentVariables.wsUrl, {
+        const socketIo = io(process.env.NEXT_PUBLIC_WS_URL, {
             auth: { token: `Bearer ${token}` },
         });
 

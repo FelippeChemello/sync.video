@@ -98,6 +98,10 @@ export function ConfigProvider({ children }) {
 
     const toggleWebcam = () => {
         if (isWebcamEnabled) {
+            webcamStream.current
+                .getVideoTracks()
+                .forEach(track => track.stop());
+
             setIsWebcamEnabled(false);
         } else {
             setIsWebcamEnabled(true);

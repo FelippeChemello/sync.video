@@ -77,6 +77,8 @@ export default function Party({ partyId }: Props) {
 
     if (!party) return <Loading />; // TODO: Add socket and peer ready check
 
+    console.log('render');
+
     return (
         <Container>
             <main>
@@ -93,9 +95,7 @@ export default function Party({ partyId }: Props) {
                 />
             </main>
             <aside>
-                {isWebcamStreamAvailable && (
-                    <VideoConference partyId={party.id} />
-                )}
+                <VideoConference partyId={party.id} />
             </aside>
         </Container>
     );
