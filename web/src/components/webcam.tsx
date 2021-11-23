@@ -60,7 +60,7 @@ type WebcamProps = {
 };
 
 // TODO: test on a device without webcam and blocking browser access to camera and microphone
-// TODO: When initialize without webcam, should use noCameraStream. 
+// TODO: When initialize without webcam, should use noCameraStream.
 // TODO: InvalidModificationError on change webcamstate
 // TODO: Reduce delay
 export default function Webcam({
@@ -71,6 +71,8 @@ export default function Webcam({
     const webcamRef = useRef<HTMLVideoElement>(null);
     const [isMicrophoneEnabled, setIsMicrophoneEnabled] = useState(true);
     const [isWebcamEnabled, setIsWebcamEnabled] = useState(true);
+    const [isWebcamAvailable, setIsWebcamAvailable] = useState(true);
+    const [isMicrophoneAvailable, setIsMicrophoneAvailable] = useState(true);
     const noCameraStream = useRef<MediaStream>();
 
     console.log(stream);
@@ -124,23 +126,44 @@ export default function Webcam({
             }
         }
 
-        const userStream = await navigator.mediaDevices.getUserMedia({
-            audio: isMicrophoneEnabled
-                ? {
-                      // deviceId: microphoneDeviceId, TODO
-                      echoCancellation: true,
-                  }
-                : false,
-            video: isWebcamEnabled
-                ? {
-                      //   deviceId: webcamDeviceId, TODO
-                      width: 1280,
-                      height: 720,
-                  }
-                : false,
-        });
+        let userStreamAudio: MediaStream;
+        try {
+            userStreamAudio = await navigator.mediaDevices.getUserMedia({
+                audio: isMicrophoneEnabled
+                    ? {
+                          // deviceId: microphoneDeviceId, TODO
+                          echoCancellation: true,
+                      }
+                    : false,
+            });
+        } catch (error) {
+            setIsMicrophoneAvailable(false);
+            setIsMicrophoneEnabled(false)
+        }
 
-        for (const userStreamTrack of userStream.getTracks()) {
+        let userStreamVideo: MediaStream;
+        try {
+            userStreamVideo = await navigator.mediaDevices.getUserMedia({
+                video: isWebcamEnabled
+                    ? {
+                          //   deviceId: webcamDeviceId, TODO
+                          width: 1280,
+                          height: 720,
+                      }
+                    : false,
+            });
+        } catch (error) {
+
+            
+            setIsWebcamAvailable(false);
+            setIsWebcamEnabled(false)
+            userStreamVideo = await createNotCameraStream();
+        }
+
+        for (const userStreamTrack of [
+            ...userStreamAudio.getTracks(),
+            ...userStreamVideo.getTracks(),
+        ]) {
             const trackKind = userStreamTrack.kind;
 
             for (const streamTrack of stream.current.getTracks()) {
@@ -212,7 +235,12 @@ export default function Webcam({
                     <BsMicFill onClick={() => setIsMicrophoneEnabled(false)} />
                 ) : (
                     <BsMicMuteFill
-                        onClick={() => setIsMicrophoneEnabled(true)}
+                        onClick={() => {
+                            if (isMicrophoneAvailable)
+                                return setIsMicrophoneEnabled(true);
+
+                            alert('Microphone is not available'); //TODO: handle
+                        }}
                     />
                 )}
                 {isWebcamEnabled ? (
@@ -221,7 +249,12 @@ export default function Webcam({
                     />
                 ) : (
                     <BsCameraVideoOffFill
-                        onClick={() => setIsWebcamEnabled(true)}
+                        onClick={() => {
+                            if (isWebcamAvailable)
+                                return setIsWebcamEnabled(true);
+
+                            alert('Webcam is not available'); //TODO: handle
+                        }}
                     />
                 )}
             </Controls>

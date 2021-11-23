@@ -4,13 +4,11 @@ import Router from 'next/router';
 
 import { useAuth } from '../hooks/Auth';
 import { useToast } from '../hooks/Toast';
-import { useConfig } from '../hooks/Authenticated/Config';
 import { useSocketIo } from '../hooks/Authenticated/SocketIo';
-import { usePeerJs } from '../hooks/Authenticated/PeerJs';
 
 import Loading from './loading';
 import Player from './player/player';
-import VideoConference from './videoconference';
+import VideoConference from './VideoConference/VideoConference';
 
 export const Container = styled.div`
     width: 100vw;
@@ -23,7 +21,8 @@ export const Container = styled.div`
     }
 
     aside {
-        width: 20vw;
+        max-width: 20vw;
+        min-width: 300px;
         height: 100vh;
         background-color: #2d333b;
     }
@@ -36,17 +35,15 @@ type Props = {
 export default function Party({ partyId }: Props) {
     const [party, setParty] = useState<InterfaceParty>();
 
-    const { isWebcamStreamAvailable } = useConfig();
     const { socketAddListener, socketEmit, socketConnected, setSocketMode } =
         useSocketIo();
-    const { peer, peerReady } = usePeerJs();
     const { addToast } = useToast();
     const { user } = useAuth();
 
     useEffect(() => {
-        if (!socketConnected || !peerReady) return;
+        if (!socketConnected) return;
 
-        socketEmit('party:join', { partyId, peerId: peer.id });
+        socketEmit('party:join', { partyId });
 
         socketAddListener('party:error', (error: string) => {
             addToast({
@@ -63,7 +60,7 @@ export default function Party({ partyId }: Props) {
         socketAddListener('party:joined', (party: InterfaceParty) => {
             setParty(party);
         });
-    }, [socketConnected, peerReady]);
+    }, [socketConnected, partyId, addToast]);
 
     useEffect(() => {
         if (!party) return;
@@ -95,7 +92,7 @@ export default function Party({ partyId }: Props) {
                 />
             </main>
             <aside>
-                <VideoConference partyId={party.id} />
+                <VideoConference partyId={party.id} roomUrl={party.roomUrl} />
             </aside>
         </Container>
     );

@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import ToastNotification from '../components/Toast';

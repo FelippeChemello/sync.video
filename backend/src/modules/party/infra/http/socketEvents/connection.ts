@@ -8,6 +8,7 @@ import setPartyUrlService from '../../../services/setPartyUrlService';
 import setPartyOwnerService from '../../../services/setPartyOwnerService';
 import setVideoStateService from '../../../services/setVideoStateService';
 import GetSocketDataService from '../../../services/getSocketDataService';
+import addPeerIdToUserPartyService from '../../../services/addPeerIdToUserPartyService';
 
 export default function connection(
     socket: socketio.Socket,
@@ -16,12 +17,9 @@ export default function connection(
     console.log('client connected', socket.id);
     socket.emit('connect_success');
 
-    socket.on(
-        'party:join',
-        async (data: { partyId: string; peerId: string }) => {
-            await joinParty(socket, data.partyId, data.peerId);
-        },
-    );
+    socket.on('party:join', async (data: { partyId: string }) => {
+        await joinParty(socket, data.partyId);
+    });
 
     socket.on(
         'party:changeOwner',
@@ -56,7 +54,7 @@ export default function connection(
     );
 
     socket.on('peer:ready', (data: { partyId: string; peerId: string }) => {
-        peerReady(io, data.partyId, data.peerId);
+        peerReady(io, data.partyId, data.peerId, socket);
     });
 
     socket.on('disconnect', () => disconnect(io, socket.id));
@@ -72,13 +70,9 @@ async function disconnect(io: socketio.Server, socketId: string) {
     io.sockets.in(socketData.partyId).emit('peer:leave', socketData.peerId);
 }
 
-async function joinParty(
-    socket: socketio.Socket,
-    partyId: string,
-    peerId: string,
-) {
-    if (!partyId || !peerId) {
-        socket.emit('party:error', 'Missing partyId or PeerId');
+async function joinParty(socket: socketio.Socket, partyId: string) {
+    if (!partyId) {
+        socket.emit('party:error', 'Missing partyId');
         return;
     }
 
@@ -87,7 +81,7 @@ async function joinParty(
 
         await container
             .resolve(AddParticipantService)
-            .execute({ partyId, userId: +userId, socketId: socket.id, peerId });
+            .execute({ partyId, userId: +userId, socketId: socket.id });
 
         const party = await container
             .resolve(GetPartyDataService)
@@ -170,11 +164,22 @@ async function setVideoState(
     }
 }
 
-async function peerReady(io: socketio.Server, partyId: string, peerId: string) {
+async function peerReady(
+    io: socketio.Server,
+    partyId: string,
+    peerId: string,
+    socket: socketio.Socket,
+) {
     console.log('peer ready', peerId);
 
+    const { sub: userId } = socket.decodedToken;
+
     try {
-        io.to(partyId).emit('peer:joined', peerId);
+        await container.resolve(addPeerIdToUserPartyService).execute({
+            peerId,
+            userId,
+            partyId,
+        });
     } catch (err) {
         console.log(err); // TODO: handle error
     }

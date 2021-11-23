@@ -37,6 +37,9 @@ export default class Party {
     @OneToMany(() => Message, message => message.party, { cascade: true })
     messages: Message[];
 
+    @Column()
+    roomUrl: string;
+
     @OneToMany(() => Video, video => video.party, { cascade: true })
     videos: Video[];
 

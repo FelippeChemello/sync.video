@@ -5,6 +5,7 @@ import { container } from 'tsyringe';
 import CreatePartyService from '../../../services/createPartyService';
 import GetPartyDataService from '../../../services/getPartyDataService';
 import AddParticipantService from '../../../services/addParticipantService';
+import AddRoomUrlToUserPartyService from '../../../services/addRoomUrlToUserPartyService';
 
 export default class PartyController {
     public async create(
@@ -27,6 +28,20 @@ export default class PartyController {
         const party = await container
             .resolve(GetPartyDataService)
             .execute({ userId: +userId, partyId: partyId });
+
+        return response.json(classToClass(party));
+    }
+
+    public async updateUrl(
+        request: Request,
+        response: Response,
+    ): Promise<Response> {
+        const { id: partyId } = request.params;
+        const { url } = request.body;
+
+        const party = await container
+            .resolve(AddRoomUrlToUserPartyService)
+            .execute({ partyId: partyId, url: `${url}` });
 
         return response.json(classToClass(party));
     }

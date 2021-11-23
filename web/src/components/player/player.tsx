@@ -10,7 +10,6 @@ import { MdOpenInBrowser, MdOndemandVideo } from 'react-icons/md';
 import ReactPlayer from 'react-player';
 import styled from 'styled-components';
 
-import { useConfig } from '../../hooks/Authenticated/Config';
 import { useSocketIo } from '../../hooks/Authenticated/SocketIo';
 
 import SeekBar from './Seekbar';
@@ -158,7 +157,6 @@ export default function Player({
         playedSeconds: 0,
     });
 
-    const { handleConfigModal } = useConfig();
     const { socketAddListener, socketMode, socketEmit } = useSocketIo();
 
     useEffect(() => {
@@ -268,7 +266,8 @@ export default function Player({
                     />
                 </Url>
                 <div>
-                    <BsGearFill onClick={handleConfigModal} />
+                    {/* TODO: config */}
+                    <BsGearFill onClick={() => alert('config')} />
                 </div>
             </TopBar>
             <ReactPlayer

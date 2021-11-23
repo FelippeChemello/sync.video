@@ -20,6 +20,20 @@ partyRouter.get(
     partyController.get,
 );
 
+partyRouter.patch(
+    '/:id/url',
+    ensureAuthenticated,
+    celebrate({
+        [Segments.PARAMS]: {
+            id: Joi.string().uuid().required(),
+        },
+        [Segments.BODY]: {
+            url: Joi.string().required(),
+        },
+    }),
+    partyController.updateUrl,
+);
+
 partyRouter.post(
     '/:id/addParticipant',
     ensureAuthenticated,

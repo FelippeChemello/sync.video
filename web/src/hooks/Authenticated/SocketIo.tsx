@@ -4,7 +4,6 @@ import { io, Socket } from 'socket.io-client';
 
 import { useAuth } from '../Auth';
 import { useToast } from '../Toast';
-import { useConfig } from './Config';
 
 type InterfaceSocketIoContext = {
     socket: Socket;
@@ -40,7 +39,6 @@ export function SocketIoProvider({ children }) {
     );
 
     const { token } = useAuth();
-    const { environmentVariables } = useConfig();
     const { addToast } = useToast();
 
     useEffect(() => {

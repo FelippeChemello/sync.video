@@ -11,7 +11,6 @@ interface InterfaceRequestDTO {
     userId: number;
     partyId: string;
     socketId: string;
-    peerId: string;
 }
 
 @injectable()
@@ -31,7 +30,6 @@ export default class AddParticipantService {
         partyId,
         userId,
         socketId,
-        peerId,
     }: InterfaceRequestDTO): Promise<Party> {
         const userToBeAdded = await this.userRepository.findOne(userId);
 
@@ -64,16 +62,11 @@ export default class AddParticipantService {
                 `updating socket ID ${userPartyRelationship?.socketId} -> ${socketId}`,
             );
 
-            console.log(
-                `updating peer ID ${userPartyRelationship?.peerId} -> ${peerId}`,
-            );
-
             if (!userPartyRelationship) {
                 throw new AppError('Party and User Relationship was not found');
             }
 
             userPartyRelationship.socketId = socketId;
-            userPartyRelationship.peerId = peerId;
 
             await this.partiesUsersRelationshipRepository.save(
                 userPartyRelationship,
@@ -87,7 +80,6 @@ export default class AddParticipantService {
             this.partiesUsersRelationshipRepository.create({
                 user: userToBeAdded,
                 party,
-                peerId,
             });
 
         await this.partiesUsersRelationshipRepository.save(

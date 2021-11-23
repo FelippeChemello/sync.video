@@ -24,6 +24,7 @@ interface InterfaceParty {
     ownerId: number;
     partiesUsersRelationship: SocketData[];
     videos: InterfaceVideo[];
+    roomUrl: string;
 }
 
 interface InterfaceProgress {

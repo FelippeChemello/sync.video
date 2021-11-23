@@ -9,7 +9,6 @@ import {
 } from 'react';
 import { intervalToDuration } from 'date-fns';
 import styled from 'styled-components';
-// import videoStyles from './video.css';
 
 import isTouchDevice from '../../utils/isTouchDevice';
 
@@ -67,7 +66,7 @@ const Button = styled.div`
     position: absolute;
     height: 12px;
     width: 12px;
-    margin-top: -6px; 
+    margin-top: -6px;
     margin-left: -5px;
     display: block;
     background: #fff;
