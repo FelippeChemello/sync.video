@@ -257,9 +257,9 @@ export default function Player({
                         value={url}
                         onChange={e => setUrl(e.target.value)}
                         placeholder={
-                            socketMode === 'active' // TODO: i18n
-                                ? 'Enter video URL here or click on Icon to upload your file'
-                                : 'Waiting for party owner to input video'
+                            socketMode === 'active'
+                                ? 'Insira um URL de video ou clique no ícone para selecionar um video seu'
+                                : 'Aguardando controlador da sala adicionar video'
                         }
                         disabled={socketMode === 'passive'}
                         readOnly={socketMode === 'passive'}

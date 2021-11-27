@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetServerSidePropsContext } from 'next';
 import { parseCookies } from 'nookies';
 import { useForm } from 'react-hook-form';
@@ -32,7 +30,6 @@ interface SignInFormData {
 }
 
 const SignIn: React.FC = () => {
-    const { t } = useTranslation('common');
     const { register, handleSubmit } = useForm<FormInputs>();
     const { signIn } = useAuth();
     const { addToast } = useToast();
@@ -41,9 +38,9 @@ const SignIn: React.FC = () => {
         async ({ email, password }: SignInFormData) => {
             try {
                 await signIn({ email, password });
-                addToast({ title: t('signin-success'), type: 'success' });
+                addToast({ title: 'Login efetuado', description: 'Redirecionando para página inicial', type: 'success' });
             } catch (err) {
-                addToast({ title: t('signin-error'), type: 'error' });
+                addToast({ title: 'Erro ao efetuar login', description: 'Verifique os dados digitados', type: 'error' });
             }
         },
     );
@@ -59,7 +56,7 @@ const SignIn: React.FC = () => {
                     <img src="/assets/logo.png" alt="sync.video" />
 
                     <form onSubmit={formSubmit}>
-                        <h1>{t('login-title')}</h1>
+                        <h1>Login</h1>
 
                         <input
                             placeholder="E-mail"
@@ -69,25 +66,25 @@ const SignIn: React.FC = () => {
 
                         <input
                             type="password"
-                            placeholder={t('password')}
+                            placeholder="Senha"
                             name="password"
                             {...register('password', { required: true })}
                         />
 
                         <button type="submit">
                             <FiLogIn />
-                            {t('login-title')}
+                            Entrar
                         </button>
 
                         <Link href="/forgot-password">
                             {/* TODO: create forgot-password page */}
-                            {t('forgot-password')}
+                            Esqueci minha senha
                         </Link>
                     </form>
 
-                    <Separator text={t('or')} color="#a1b2cd" distance={32} />
+                    <Separator text="ou" color="#a1b2cd" distance={32} />
 
-                    <Link href="/signup">{t('create-account')}</Link>
+                    <Link href="/signup">Criar conta</Link>
                 </AnimationContainer>
             </Content>
             <Background />
@@ -110,9 +107,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         return { redirect: { destination: '/dashboard', permanent: false } };
     } catch (err) {
         return {
-            props: {
-                ...(await serverSideTranslations(ctx.locale, ['common'])),
-            },
+            props: {},
         };
     }
 };

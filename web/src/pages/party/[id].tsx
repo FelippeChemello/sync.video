@@ -1,5 +1,4 @@
 import { GetServerSidePropsContext } from 'next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { parseCookies } from 'nookies';
 
 import api from '../../services/api';
@@ -34,9 +33,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         await api.get('users');
 
         return {
-            props: {
-                ...(await serverSideTranslations(ctx.locale, ['common'])),
-            },
+            props: {}
         };
     } catch (err) {
         return { redirect: { destination: '/', permanent: false } };

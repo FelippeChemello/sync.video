@@ -4,10 +4,9 @@ import { shade } from 'polished';
 import { Menu } from '@headlessui/react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { useTranslation } from 'next-i18next';
+import { FiLogOut } from 'react-icons/fi';
 
 import { useAuth } from '../hooks/Auth';
-import { FiLogOut } from 'react-icons/fi';
 
 const Container = styled.div`
     height: 5rem;
@@ -114,7 +113,6 @@ const Grow = styled.div`
 
 export default function LoggedTopBar() {
     const { user, logOut } = useAuth();
-    const { t } = useTranslation('common');
 
     const [dateTime, setDateTime] = useState(() => {
         const date = new Date();
@@ -142,7 +140,6 @@ export default function LoggedTopBar() {
             <Grow />
             <section>
                 <span>{dateTime}</span>
-                <Link href="/">{t('go-premium')}</Link>
             </section>
             <Menu as="div">
                 <Menu.Button>
@@ -151,7 +148,7 @@ export default function LoggedTopBar() {
                 </Menu.Button>
                 <Menu.Items>
                     <Menu.Item as="div" onClick={() => logOut()}>
-                        <span>{t('logout')}</span>
+                        <span>Sair</span>
                         <FiLogOut />
                     </Menu.Item>
                 </Menu.Items>

@@ -1,8 +1,6 @@
 import { useCallback, useState } from 'react';
 import { GetServerSidePropsContext } from 'next';
 import Router from 'next/router';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { parseCookies } from 'nookies';
 
 import api from '../services/api';
@@ -13,7 +11,6 @@ import TopBar from '../components/loggedTopBar';
 import Carousel from '../components/carousel';
 
 export default function Dashboard() {
-    const { t } = useTranslation('common');
     const [partyCode, setPartyCode] = useState('');
 
     const createParty = useCallback(async () => {
@@ -42,68 +39,24 @@ export default function Dashboard() {
             <Main>
                 <main>
                     <div>
-                        <h1>{t('dashboard-title')}</h1>
-                        <h2
-                            dangerouslySetInnerHTML={{
-                                __html: t('dashboard-subtitle'),
-                            }}
-                        ></h2>
+                        <h1>Sincronize áudio e video com seus amigos automaticamente.</h1>
+                        <h2>
+                            Fornecemos uma <strong>sincronia perfeita </strong> entre todos os participantes conectados, além de <strong>video-chamada simultânea</strong>. Desfrute da <strong>melhor qualidade</strong> em seus videos, filmes e séries.
+                        </h2>
                     </div>
                     <div>
-                        <button onClick={createParty}>{t('new-party')}</button>
+                        <button onClick={createParty}>Criar reunião</button>
                         <input
-                            placeholder={t('enter-existing-party')}
+                            placeholder="Digite o código da reunião"
                             onChange={event => setPartyCode(event.target.value)}
                         ></input>
                         <button onClick={accessParty}>
-                            {t('enter-party')}
+                            Participar
                         </button>
                     </div>
                 </main>
                 <aside>
-                    <Carousel>
-                        <div>
-                            <img
-                                src="/assets/full-quality.svg"
-                                alt="Full quality audio and video"
-                            />
-                            <div>
-                                <p
-                                    dangerouslySetInnerHTML={{
-                                        __html: t('dashboard-carousel-quality'),
-                                    }}
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <img
-                                src="/assets/every-device.svg"
-                                alt="Watch in every device"
-                            />
-                            <div>
-                                <p
-                                    dangerouslySetInnerHTML={{
-                                        __html: t('dashboard-carousel-device'),
-                                    }}
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <img
-                                src="/assets/video-conf.svg"
-                                alt="Video conference integrated"
-                            />
-                            <div>
-                                <p
-                                    dangerouslySetInnerHTML={{
-                                        __html: t(
-                                            'dashboard-carousel-videoconference',
-                                        ),
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </Carousel>
+                    TODO
                 </aside>
             </Main>
         </Container>
@@ -123,9 +76,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         await api.get('users');
 
         return {
-            props: {
-                ...(await serverSideTranslations(ctx.locale, ['common'])),
-            },
+            props: {},
         };
     } catch (err) {
         return { redirect: { destination: '/', permanent: false } };

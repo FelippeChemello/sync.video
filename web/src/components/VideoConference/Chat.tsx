@@ -214,7 +214,6 @@ export default function Chat({
 
     useEffect(() => {}, [chatHistory]);
 
-    // TODO: i18n
     return (
         <ChatContainer isOpen={isChatOpen}>
             <Messages>
@@ -231,11 +230,11 @@ export default function Chat({
             <Input>
                 <input
                     type="text"
-                    placeholder="Type your message here.."
+                    placeholder="Digite sua mensagem"
                     value={inputValue}
                     onChange={event => setInputValue(event.target.value)}
                 />
-                <BiSend onClick={handleSubmit}>Send</BiSend>
+                <BiSend onClick={handleSubmit}>Enviar</BiSend>
             </Input>
         </ChatContainer>
     );

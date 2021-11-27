@@ -66,32 +66,15 @@ const CornerMessage = styled.p`
     font-size: 14px;
 `;
 
-//TODO: i18n
 function getTrackUnavailableMessage(kind: string, trackState: DailyTrackState) {
     if (!trackState) return;
     switch (trackState.state) {
-        case 'blocked':
-            if (trackState.blocked.byPermissions) {
-                return `${kind} permission denied`;
-            } else if (trackState.blocked.byDeviceMissing) {
-                return `${kind} device missing`;
-            }
-            return `${kind} blocked`;
-        case 'off':
-            if (trackState.off.byUser) {
-                return `${kind} muted`;
-            } else if (trackState.off.byBandwidth) {
-                return `${kind} muted to save bandwidth`;
-            }
-            return `${kind} off`;
-        case 'sendable':
-            return `${kind} not subscribed`;
-        case 'loading':
-            return `${kind} loading...`;
-        case 'interrupted':
-            return `${kind} interrupted`;
-        case 'playable':
-            return null;
+        case 'blocked': return `${kind} não encontrado`;
+        case 'off': return `${kind} desligado`;
+        case 'sendable': return `${kind} não recebido`;
+        case 'loading': return `${kind} carregando`;
+        case 'interrupted': return `${kind} com erro`;
+        case 'playable': return null;
     }
 }
 

@@ -86,13 +86,13 @@ export function SocketIoProvider({ children }) {
 
             addToast({
                 type: 'error',
-                title: 'Error',
-                description: 'Connection error',
-            }); //TODO: i18n
+                title: 'Erro',
+                description: 'Erro ao conectar',
+            }); 
 
-            // setTimeout(() => {
-            // Router.push('/');
-            // }, 1500);
+            setTimeout(() => {
+                Router.push('/');
+            }, 1500);
         });
     };
 

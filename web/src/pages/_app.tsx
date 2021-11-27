@@ -1,6 +1,5 @@
 import Head from 'next/head';
 import { AppProps } from 'next/app';
-import { appWithTranslation } from 'next-i18next';
 
 import AppProvider from '../hooks';
 
@@ -24,4 +23,4 @@ const App = ({ Component, pageProps }: AppProps) => {
     );
 };
 
-export default appWithTranslation(App);
+export default App;

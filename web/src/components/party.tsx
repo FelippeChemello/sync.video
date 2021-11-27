@@ -49,9 +49,9 @@ export default function Party({ partyId }: Props) {
         socketAddListener('party:error', (error: string) => {
             addToast({
                 type: 'error',
-                title: 'Error while getting party info',
+                title: 'Erro',
                 description: error,
-            }); // TODO: i18n
+            });
 
             setTimeout(() => {
                 Router.push('/dashboard');

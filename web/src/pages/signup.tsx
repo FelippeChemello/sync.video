@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { parseCookies } from 'nookies';
 import { GetServerSidePropsContext } from 'next';
 import { useForm } from 'react-hook-form';
@@ -30,7 +28,6 @@ interface FormInputs {
 }
 
 const SignUp: React.FC = () => {
-    const { t } = useTranslation('common');
     const {
         register,
         handleSubmit,
@@ -46,14 +43,15 @@ const SignUp: React.FC = () => {
 
             await api.post('users', { email, name, password, avatar });
             addToast({
-                title: t('signup-success'),
-                description: t('signup-description-success'),
+                title: "Cadastro realizado com sucesso",
+                description: "Efetuando login",
                 type: 'success',
             });
             await signIn({ email, password });
         } catch (err) {
             addToast({
-                title: t('signup-error'),
+                title: "Erro ao criar conta",
+                description: "Verifique os dados digitados",
                 type: 'error',
             });
         }
@@ -71,14 +69,14 @@ const SignUp: React.FC = () => {
                     <img src="/assets/logo.png" alt="GoBarber" />
 
                     <form onSubmit={formSubmit}>
-                        <h1>{t('signup-title')}</h1>
+                        <h1>Cadastre-se</h1>
 
                         <input
-                            placeholder={t('name')}
+                            placeholder="Nome"
                             name="name"
                             {...register('name', { required: true })}
                         />
-                        {<span>&nbsp; {errors.name && t('name-invalid')}</span>}
+                        {<span>&nbsp; {errors.name && "Nome inválido"}</span>}
 
                         <input
                             placeholder="E-mail"
@@ -87,13 +85,13 @@ const SignUp: React.FC = () => {
                         />
                         {
                             <span>
-                                &nbsp; {errors.email && t('email-invalid')}
+                                &nbsp; {errors.email && "Email inválido"}
                             </span>
                         }
 
                         <input
                             type="password"
-                            placeholder={t('password')}
+                            placeholder="Senha"
                             name="password"
                             {...register('password', {
                                 required: true,
@@ -103,23 +101,19 @@ const SignUp: React.FC = () => {
                         {
                             <span>
                                 &nbsp;
-                                {errors.password && t('password-invalid')}
+                                {errors.password && "Senha não possui 8 caracteres"}
                             </span>
                         }
 
                         <button type="submit">
                             <FiLogIn />
-                            {t('signup-title')}
+                            Cadastrar
                         </button>
-
-                        <Link href="/forgot-password">
-                            {t('forgot-password')}
-                        </Link>
                     </form>
 
-                    <Separator text={t('or')} color="#a1b2cd" distance={32} />
+                    <Separator text="ou" color="#a1b2cd" distance={32} />
 
-                    <Link href="/signin">{t('login-title')}</Link>
+                    <Link href="/signin">Efetuar login</Link>
                 </AnimationContainer>
             </Content>
         </Container>
@@ -141,9 +135,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         return { redirect: { destination: '/dashboard', permanent: false } };
     } catch (err) {
         return {
-            props: {
-                ...(await serverSideTranslations(ctx.locale, ['common'])),
-            },
+            props: {},
         };
     }
 };
