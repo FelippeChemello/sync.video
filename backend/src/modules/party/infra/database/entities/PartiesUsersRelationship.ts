@@ -36,6 +36,9 @@ export default class PartiesUsersRelationship {
     @Column()
     peerId: string;
 
+    @Column()
+    connected: boolean;
+
     @CreateDateColumn()
     @Exclude()
     createdAt: Date;

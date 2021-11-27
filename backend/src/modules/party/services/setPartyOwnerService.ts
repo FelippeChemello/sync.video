@@ -42,8 +42,8 @@ export default class setPartyOwnerService {
             partyUser => partyUser.user.id === userId,
         );
 
-        if (!isUserOnParty) {
-            throw new AppError('User is not on Party');
+        if (!isUserOnParty || isUserOnParty.party.ownerId !== userId) {
+            throw new AppError('User is not on Party or is not Owner');
         }
 
         const isNewOwnerOnParty = party.partiesUsersRelationship.find(

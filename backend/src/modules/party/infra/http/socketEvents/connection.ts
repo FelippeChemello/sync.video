@@ -7,8 +7,8 @@ import AddParticipantService from '../../../services/addParticipantService';
 import setPartyUrlService from '../../../services/setPartyUrlService';
 import setPartyOwnerService from '../../../services/setPartyOwnerService';
 import setVideoStateService from '../../../services/setVideoStateService';
-import GetSocketDataService from '../../../services/getSocketDataService';
 import addPeerIdToUserPartyService from '../../../services/addPeerIdToUserPartyService';
+import DisconnectUserFromPartyService from '../../../services/disconnectUserFromPartyService';
 
 export default function connection(
     socket: socketio.Socket,
@@ -29,7 +29,7 @@ export default function connection(
     );
 
     socket.on('player:ready', (data: { partyId: string; url: string }) => {
-        playerReady(io, data.partyId, data.url);
+        playerReady(io, data.partyId, data.url, socket);
     });
 
     socket.on(
@@ -57,22 +57,28 @@ export default function connection(
         peerReady(io, data.partyId, data.peerId, socket);
     });
 
-    socket.on('disconnect', () => disconnect(io, socket.id));
+    socket.on('disconnect', () => disconnect(io, socket.id, socket));
 }
 
-async function disconnect(io: socketio.Server, socketId: string) {
+async function disconnect(io: socketio.Server, socketId: string, socket: socketio.Socket) {
     console.log('client disconnected', socketId);
 
     const socketData = await container
-        .resolve(GetSocketDataService)
+        .resolve(DisconnectUserFromPartyService)
         .execute({ socketId });
 
-    io.sockets.in(socketData.partyId).emit('peer:leave', socketData.peerId);
+    const socketDisconnectedWasOwner = socketData.party.ownerId === socketData.user.id;
+    if (!socketDisconnectedWasOwner) return;
+
+    const newOwner = socketData.party.partiesUsersRelationship.find(relationship => relationship.connected)
+    if (!newOwner) return;
+    
+    partyChangeOwner(io, socket, socketData.party.id, newOwner.peerId)
 }
 
 async function joinParty(socket: socketio.Socket, partyId: string) {
     if (!partyId) {
-        socket.emit('party:error', 'Missing partyId');
+        socket.emit('party:error', 'Reunião não encontrada');
         return;
     }
 
@@ -91,7 +97,7 @@ async function joinParty(socket: socketio.Socket, partyId: string) {
 
         socket.emit('party:joined', classToClass(party));
     } catch (err) {
-        console.log(err); // TODO: handle error
+        socket.emit('party:error', 'Falha ao adicionar participante')
     }
 }
 
@@ -101,8 +107,6 @@ async function partyChangeOwner(
     partyId: string,
     newOwnerId: string,
 ) {
-    console.log('party change owner to ', newOwnerId);
-
     try {
         const { sub: userId } = socket.decodedToken;
 
@@ -118,13 +122,11 @@ async function partyChangeOwner(
 
         io.to(partyId).emit('party:updated', classToClass(party));
     } catch (err) {
-        console.log(err); // TODO: handle error
+        socket.emit('party:error', 'Falha ao alterar controle da reunião')
     }
 }
 
-async function playerReady(io: socketio.Server, partyId: string, url: string) {
-    console.log('player ready', partyId, url);
-
+async function playerReady(io: socketio.Server, partyId: string, url: string, socket: socketio.Socket) {
     try {
         const video = await container
             .resolve(setPartyUrlService)
@@ -132,7 +134,7 @@ async function playerReady(io: socketio.Server, partyId: string, url: string) {
 
         io.to(partyId).emit('player:ready', classToClass(video));
     } catch (err) {
-        console.log(err); // TODO: handle error
+        socket.emit('party:error', 'Falha ao adicionar video')
     }
 }
 
@@ -145,10 +147,6 @@ async function setVideoState(
     videoId: number,
     socket: socketio.Socket,
 ) {
-    const { sub: userId } = socket.decodedToken;
-
-    console.log('player State', partyId, userId);
-
     try {
         const video = await container.resolve(setVideoStateService).execute({
             currentTime,
@@ -160,7 +158,9 @@ async function setVideoState(
 
         io.to(partyId).emit('player:updateState', classToClass(video));
     } catch (err) {
-        console.log(err); // TODO: handle error
+        // Won't handle this error, cause it's not critical and non-blocking
+
+        console.error(err);
     }
 }
 
@@ -187,6 +187,6 @@ async function peerReady(
 
         io.to(partyId).emit('party:updated', classToClass(party));
     } catch (err) {
-        console.log(err); // TODO: handle error
+        socket.emit('party:error', 'Falha ao adicionar à chamada')
     }
 }

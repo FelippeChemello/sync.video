@@ -67,6 +67,7 @@ export default class AddParticipantService {
             }
 
             userPartyRelationship.socketId = socketId;
+            userPartyRelationship.connected = true;
 
             await this.partiesUsersRelationshipRepository.save(
                 userPartyRelationship,
@@ -80,6 +81,7 @@ export default class AddParticipantService {
             this.partiesUsersRelationshipRepository.create({
                 user: userToBeAdded,
                 party,
+                connected: true,
             });
 
         await this.partiesUsersRelationshipRepository.save(
