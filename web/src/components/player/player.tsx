@@ -290,7 +290,6 @@ export default function Player({
                 }}
                 onPlay={() => handlePlayPause('play')}
                 onPause={() => handlePlayPause('pause')}
-                onSeek={data => console.warn(data)} // TODO: Remove this line, it isn't doing nothing and send seek event through socket
                 loop={false}
                 playbackRate={playbackRate}
                 pip={isPip}

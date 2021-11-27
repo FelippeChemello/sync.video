@@ -8,7 +8,7 @@ import AppError from '../../../shared/errors/AppError';
 
 interface InterfaceRequestDTO {
     partyId: string;
-    newOwnerId: number;
+    newOwnerId: string;
     userId: number;
 }
 
@@ -47,14 +47,16 @@ export default class setPartyOwnerService {
         }
 
         const isNewOwnerOnParty = party.partiesUsersRelationship.find(
-            partyUser => partyUser.user.id === newOwnerId,
+            partyUser => partyUser.peerId === newOwnerId,
         );
 
         if (!isNewOwnerOnParty) {
             throw new AppError('New Owner is not on Party');
         }
 
-        const newOwner = await this.userRepository.findOne(newOwnerId);
+        const userIdFromNewOwner = isNewOwnerOnParty.user.id
+
+        const newOwner = await this.userRepository.findOne(userIdFromNewOwner);
 
         if (!newOwner) {
             throw new AppError('Failed to find new Owner data');

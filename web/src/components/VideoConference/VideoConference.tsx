@@ -47,23 +47,43 @@ const Container = styled.div`
 
 const VideosContainer = styled.div`
     display: flex;
-    flex-direction: row;
+    flex-direction: column !important;
     width: 100%;
     gap: 1rem;
     flex-flow: wrap;
     justify-content: start;
+    height: 100%;
+    overflow: auto;
+    align-items: center;
+
+    &::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        background-color: transparent;
+    }
+
+    &::-webkit-scrollbar {
+        height: 6px;
+        background-color: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #ccc;
+        border-radius: 6px;
+    }
 `;
 
 type VideoConferenceProps = {
     partyId: string;
+    ownerPeerId: string;
     roomUrl?: string;
 };
 
 
-// TODO: Handle room unavailable
 export default function VideoConference({
     partyId,
     roomUrl,
+    ownerPeerId
 }: VideoConferenceProps) {
     const [state, setState] = useState<VideoConferenceState>(
         VideoConferenceState.IDLE,
@@ -79,13 +99,10 @@ export default function VideoConference({
 
     useEffect(() => {
         if (roomUrl && !callObject && roomUrl.length > 0) {
-            console.log('Entrando no room ', roomUrl);
-
             startJoiningCall(roomUrl);
             return;
         }
 
-        console.log('Criando call');
         createCall().then(call => startJoiningCall(call.url));
     }, []);
 
@@ -108,6 +125,15 @@ export default function VideoConference({
     }, [isChatOpen]);
 
     useEffect(() => {
+        if (state === VideoConferenceState.ERROR) {
+            addToast({title: 'Erro', description: 'Ocorreu um erro desconhecido', type: 'error'});
+            
+            setTimeout(() => {
+                Router.push('/dashboard')
+            }, 1500)
+            return;
+        }
+        
         if (state !== VideoConferenceState.JOINED) return;
         const peerId = callObject.participants().local.user_id;
 
@@ -115,15 +141,13 @@ export default function VideoConference({
             partyId,
             peerId,
         });
-
-        //TODO: if error redirect to dashboard
     }, [state]);
 
     const addEventListener = useCallback(() => {
         if (!callObject) return;
 
         handleNewMeetingState();
-        handleNewParticipantsState();
+        updateCallState();
 
         const meetingEvents = [
             'joined-meeting',
@@ -140,7 +164,7 @@ export default function VideoConference({
             'participant-left',
         ] as DailyEvent[];
         participantEvents.forEach(event => {
-            callObject.on(event, handleNewParticipantsState);
+            callObject.on(event, updateCallState);
         });
 
         callObject.on('camera-error', handleCameraErrorEvent);
@@ -164,7 +188,7 @@ export default function VideoConference({
             'participant-left',
         ] as DailyEvent[];
         participantEvents.forEach(event => {
-            callObject.off(event, handleNewParticipantsState);
+            callObject.off(event, updateCallState);
         });
 
         callObject.off('camera-error', handleCameraErrorEvent);
@@ -188,16 +212,17 @@ export default function VideoConference({
         }
     }, [callObject]);
 
-    const handleNewParticipantsState = useCallback(async () => {
-        // const { isCameraClosed, isMicMuted } = getStreamStates(callObject);
-
-        // callObject.setLocalVideo(isCameraClosed);
-        // callObject.setLocalAudio(isMicMuted);
+    const updateCallState = useCallback(async () => {
+        if (!callObject) return;
 
         const participants = callObject.participants();
 
-        setCallState(getCallItems(participants));
-    }, [callObject]);
+        setCallState(getCallItems(participants, ownerPeerId));
+    }, [callObject, ownerPeerId]);
+
+    useEffect(() => {
+        updateCallState()
+    }, [ownerPeerId])
 
     const handleCameraErrorEvent = event => {
         addToast({
@@ -217,7 +242,8 @@ export default function VideoConference({
 
             return roomData.data;
         } catch (e) {
-            addToast({ title: 'Failed at creating call' }); //TODO: i18n
+            setState(VideoConferenceState.ERROR);
+            addToast({ title: 'Falha ao criar chamada' });
             return;
         }
     }, []);
@@ -230,21 +256,30 @@ export default function VideoConference({
         setCallObject(newCallObject);
         setState(VideoConferenceState.JOINING);
 
-        console.log(url);
-
-        newCallObject.join({ url });
+        try {
+            newCallObject.join({ url });
+        } catch (e) {
+            addToast({ title: 'Falha ao acessar a chamada' });
+            setState(VideoConferenceState.ERROR);
+        }
     }, []);
 
     const videos = useMemo(() => {
-        return Object.entries(callState).map(([id, callItem]) => {
+        return Object.entries(callState).map(([id, callItem], _, array) => {
+            const quantityOfParticipant = array.length < 2 ? 2 : array.length;
+
             return (
                 <Video
                     key={id}
-                    callItem={callItem}
                     videoTrackState={callItem.videoTrackState}
                     audioTrackState={callItem.audioTrackState}
                     isLocal={isLocal(id)}
-                />
+                    quantityOfParticipants={quantityOfParticipant}
+                    isOwner={callItem.isOwner}
+                    ownerPeerId={callItem.ownerPeerId}
+                    peerId={id}
+                    partyId={partyId}
+                />                         
             );
         });
     }, [callState]);
@@ -253,7 +288,7 @@ export default function VideoConference({
         <Container>
             {state === VideoConferenceState.JOINED && (
                 <>
-                    <VideosContainer>{videos}</VideosContainer>
+                    <VideosContainer>{videos}</VideosContainer> 
 
                     <Tray
                         hasNewChatMessage={hasNewChatMessage}

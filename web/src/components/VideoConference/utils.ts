@@ -25,6 +25,8 @@ export type CallState = {
     [participantId: string]: {
         videoTrackState: DailyTrackState;
         audioTrackState: DailyTrackState;
+        isOwner: boolean;
+        ownerPeerId: string;
     };
 };
 
@@ -32,16 +34,20 @@ export const initialCallItems = {
     local: {
         videoTrackState: null,
         audioTrackState: null,
+        isOwner: false,
+        ownerPeerId: null,
     },
 };
 
-export function getCallItems(participants: DailyParticipantsObject): CallState {
+export function getCallItems(participants: DailyParticipantsObject, ownerPeerId: string): CallState {
     let callItems = { ...initialCallItems };
 
     Object.entries(participants).forEach(([participantId, participant]) => {
         callItems[participantId] = {
             videoTrackState: participant.tracks.video,
             audioTrackState: participant.tracks.audio,
+            isOwner: participantId === ownerPeerId,
+            ownerPeerId
         };
     });
 

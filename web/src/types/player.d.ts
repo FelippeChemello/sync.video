@@ -1,6 +1,7 @@
 interface InterfaceParticipant {
     avatar: string;
     name: string;
+    id: number
 }
 
 interface SocketData {

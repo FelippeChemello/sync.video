@@ -23,7 +23,7 @@ export default function connection(
 
     socket.on(
         'party:changeOwner',
-        async (data: { partyId: string; newOwnerId: number }) => {
+        async (data: { partyId: string; newOwnerId: string }) => {
             await partyChangeOwner(io, socket, data.partyId, data.newOwnerId);
         },
     );
@@ -99,9 +99,9 @@ async function partyChangeOwner(
     io: socketio.Server,
     socket: socketio.Socket,
     partyId: string,
-    newOwnerId: number,
+    newOwnerId: string,
 ) {
-    console.log('party change owner');
+    console.log('party change owner to ', newOwnerId);
 
     try {
         const { sub: userId } = socket.decodedToken;
@@ -116,7 +116,7 @@ async function partyChangeOwner(
             .resolve(GetPartyDataService)
             .execute({ partyId, userId: +userId });
 
-        io.to(partyId).emit('party:changeOwner', classToClass(party));
+        io.to(partyId).emit('party:updated', classToClass(party));
     } catch (err) {
         console.log(err); // TODO: handle error
     }
@@ -180,6 +180,12 @@ async function peerReady(
             userId,
             partyId,
         });
+
+        const party = await container
+            .resolve(GetPartyDataService)
+            .execute({ partyId, userId: +userId });
+
+        io.to(partyId).emit('party:updated', classToClass(party));
     } catch (err) {
         console.log(err); // TODO: handle error
     }

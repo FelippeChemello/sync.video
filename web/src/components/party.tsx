@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import styled from 'styled-components';
 import Router from 'next/router';
 
@@ -34,6 +34,7 @@ type Props = {
 
 export default function Party({ partyId }: Props) {
     const [party, setParty] = useState<InterfaceParty>();
+    const [ownerPeerId, setOwnerPeerId] = useState<string>();
 
     const { socketAddListener, socketEmit, socketConnected, setSocketMode } =
         useSocketIo();
@@ -60,21 +61,31 @@ export default function Party({ partyId }: Props) {
         socketAddListener('party:joined', (party: InterfaceParty) => {
             setParty(party);
         });
+
+        socketAddListener('party:updated', (party: InterfaceParty) => {
+            setParty(party);
+        })
     }, [socketConnected, partyId, addToast]);
 
     useEffect(() => {
+        console.log(party)
+
         if (!party) return;
 
-        if (party.ownerId === user.id) {
+        const {ownerId} = party
+
+        const peerId = user.id === ownerId ? 'local' : party.partiesUsersRelationship.find(relationship => relationship.user.id === ownerId).peerId
+        setOwnerPeerId(peerId)
+
+        if (ownerId === user.id) {
             setSocketMode('active');
         } else {
             setSocketMode('passive');
         }
     }, [party]);
 
-    if (!party) return <Loading />; // TODO: Add socket and peer ready check
+    if (!party) return <Loading />;
 
-    console.log('render');
 
     return (
         <Container>
@@ -92,7 +103,7 @@ export default function Party({ partyId }: Props) {
                 />
             </main>
             <aside>
-                <VideoConference partyId={party.id} roomUrl={party.roomUrl} />
+                <VideoConference partyId={party.id} roomUrl={party.roomUrl} ownerPeerId={ownerPeerId} />
             </aside>
         </Container>
     );
