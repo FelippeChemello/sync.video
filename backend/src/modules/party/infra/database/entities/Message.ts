@@ -21,7 +21,7 @@ export default class Message {
 
     @ManyToOne(() => User)
     @JoinColumn({ name: 'userId' })
-    provider: User;
+    user: User;
 
     @Column()
     partyId: number;

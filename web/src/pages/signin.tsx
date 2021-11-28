@@ -9,7 +9,6 @@ import { useAuth } from '../hooks/Auth';
 import { useToast } from '../hooks/Toast';
 
 import Blob from '../components/blob';
-import I18Button from '../components/i18button';
 import Separator from '../components/separator';
 
 import {
@@ -47,7 +46,6 @@ const SignIn: React.FC = () => {
 
     return (
         <Container>
-            <I18Button />
             <Content>
                 <Blob left={-50} top={100} />
                 <Blob right={50} top={300} width={200} height={250} />

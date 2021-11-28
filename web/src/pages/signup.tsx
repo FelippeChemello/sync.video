@@ -10,7 +10,6 @@ import { useAuth } from '../hooks/Auth';
 import { useToast } from '../hooks/Toast';
 
 import Blob from '../components/blob';
-import I18Button from '../components/i18button';
 import Separator from '../components/separator';
 
 import {
@@ -59,7 +58,6 @@ const SignUp: React.FC = () => {
 
     return (
         <Container>
-            <I18Button />
             <Background />
             <Content>
                 <Blob right={50} top={-50} />

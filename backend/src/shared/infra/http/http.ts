@@ -4,6 +4,8 @@ import cors from 'cors';
 import { errors } from 'celebrate';
 import { ExpressPeerServer } from 'peer';
 
+import apiConfig from '../../../config/api'
+
 import routes from './routes';
 import errorHandler from './middlewares/error';
 
@@ -22,6 +24,8 @@ function startServer() {
     app.use(errorHandler);
 
     app.use('/peer', ExpressPeerServer(server));
+
+    app.use('/files', express.static(apiConfig.uploadFolder));
 
     server.listen(port, () => {
         console.log(`🚀 Server started on port ${port}`);

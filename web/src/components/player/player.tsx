@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import {
     BsPlayFill,
-    BsPip,
     BsFullscreen,
     BsFillPauseFill,
     BsGearFill,
@@ -148,8 +147,6 @@ export default function Player({
     const [playbackRate, setPlaybackRate] = useState(1);
     const [isPlaying, setIsPlaying] = useState(true);
     const [isSeeking, setIsSeeking] = useState(false);
-    const [isPip, setIsPip] = useState(false);
-    const [canPip, setCanPip] = useState(false);
     const [progress, setProgress] = useState<InterfaceProgress>({
         loaded: 0,
         loadedSeconds: 0,
@@ -162,10 +159,6 @@ export default function Player({
     useEffect(() => {
         document.querySelectorAll('video');
     }, []);
-
-    useEffect(() => {
-        setCanPip(ReactPlayer.canEnablePIP(url)); // TODO: add this option to Config modal
-    }, [url]);
 
     useEffect(() => {
         if (currentTimeOnLoadPartyData) {
@@ -205,7 +198,6 @@ export default function Player({
                 );
 
                 if (diffInSecondsFromOwner >= 1) {
-                    // TODO: Add another types of sync (via playback rate and calculating latency, then disregard it [EXPERIMENTAL])
                     playerRef.current.seekTo(second);
                 }
             },
@@ -265,10 +257,6 @@ export default function Player({
                         readOnly={socketMode === 'passive'}
                     />
                 </Url>
-                <div>
-                    {/* TODO: config */}
-                    <BsGearFill onClick={() => alert('config')} />
-                </div>
             </TopBar>
             <ReactPlayer
                 ref={playerRef}
@@ -284,7 +272,7 @@ export default function Player({
                     if (socketMode === 'passive') return;
 
                     socketEmit('player:ready', {
-                        url, // TODO: make it work with file
+                        url, // TODO: test it with file
                         partyId,
                     });
                 }}
@@ -292,7 +280,6 @@ export default function Player({
                 onPause={() => handlePlayPause('pause')}
                 loop={false}
                 playbackRate={playbackRate}
-                pip={isPip}
                 style={{
                     flex: 1,
                     pointerEvents: socketMode === 'passive' ? 'none' : 'all',
@@ -300,7 +287,6 @@ export default function Player({
 
                 // TODO: Show image when without url (or when url is not valid)
                 // TODO: Test file play/pause clicking on video (don't work with file. ex: https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_1920_18MG.mp4)
-                // TODO: Add button to change playback
                 // TODO: When buffer of someone is low than 5 seconds, stop all participant while it get 20 seconds
             />
             <Controls>
@@ -340,12 +326,7 @@ export default function Player({
                         volume={volume}
                         isSeeking={isSeeking}
                     />
-                </VolumeContainer>
-                {canPip && ( // TODO: Adicionar nas configurações opção para habilitar possibilidade de PIP e informar alerta que, quando ativado e não for owner, pode ocorrer situações inesperadas, como não pausar ou trancar reprodução - FEATURE EXPERIMENTAL
-                    <OptionButton>
-                        <BsPip onClick={() => setIsPip(!isPip)} />
-                    </OptionButton>
-                )}
+                </VolumeContainer>                
                 <OptionButton>
                     <BsFullscreen />
                 </OptionButton>

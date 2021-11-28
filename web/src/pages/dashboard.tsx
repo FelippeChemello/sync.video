@@ -4,14 +4,16 @@ import Router from 'next/router';
 import { parseCookies } from 'nookies';
 
 import api from '../services/api';
+import {useToast} from '../hooks/Toast'
 
 import { Main, Container } from '../styles/dashboard';
 
 import TopBar from '../components/loggedTopBar';
-import Carousel from '../components/carousel';
 
 export default function Dashboard() {
     const [partyCode, setPartyCode] = useState('');
+    
+    const {addToast} = useToast()
 
     const createParty = useCallback(async () => {
         try {
@@ -21,17 +23,13 @@ export default function Dashboard() {
 
             Router.push(`/party/${partyId}`);
         } catch (err) {
-            //TODO
+            addToast({ title: 'Falha ao criar reunião', type: 'error' })
         }
     }, []);
 
-    const accessParty = useCallback(
-        event => {
-            //TODO
-            console.log(partyCode);
-        },
-        [partyCode],
-    );
+    const accessParty = event => {
+        Router.push(`/party/${partyCode}`);
+    }   
 
     return (
         <Container>
