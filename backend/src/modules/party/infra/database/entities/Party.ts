@@ -11,7 +11,6 @@ import {
 } from 'typeorm';
 
 import User from '../../../../users/infra/database/entities/User';
-import Message from './Message';
 import PartiesUsersRelationship from './PartiesUsersRelationship';
 import Video from './Video';
 
@@ -33,9 +32,6 @@ export default class Party {
         { cascade: true },
     )
     partiesUsersRelationship: PartiesUsersRelationship[];
-
-    @OneToMany(() => Message, message => message.party, { cascade: true })
-    messages: Message[];
 
     @Column()
     roomUrl: string;
