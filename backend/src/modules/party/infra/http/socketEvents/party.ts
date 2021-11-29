@@ -9,21 +9,29 @@ import setPartyOwnerService from '../../../services/setPartyOwnerService';
 import setVideoStateService from '../../../services/setVideoStateService';
 import addPeerIdToUserPartyService from '../../../services/addPeerIdToUserPartyService';
 import DisconnectUserFromPartyService from '../../../services/disconnectUserFromPartyService';
+import SetMetadataService from '../../../services/setMetadataService';
 
-export async function disconnect(io: socketio.Server, socketId: string, socket: socketio.Socket) {
+export async function disconnect(
+    io: socketio.Server,
+    socketId: string,
+    socket: socketio.Socket,
+) {
     console.log('client disconnected', socketId);
 
     const socketData = await container
         .resolve(DisconnectUserFromPartyService)
         .execute({ socketId });
 
-    const socketDisconnectedWasOwner = socketData.party.ownerId === socketData.user.id;
+    const socketDisconnectedWasOwner =
+        socketData?.party?.ownerId === socketData.user.id; // TODO: testar isso
     if (!socketDisconnectedWasOwner) return;
 
-    const newOwner = socketData.party.partiesUsersRelationship.find(relationship => relationship.connected)
+    const newOwner = socketData.party.partiesUsersRelationship.find(
+        relationship => relationship.connected,
+    );
     if (!newOwner) return;
-    
-    partyChangeOwner(io, socket, socketData.party.id, newOwner.peerId)
+
+    partyChangeOwner(io, socket, socketData.party.id, newOwner.peerId);
 }
 
 export async function joinParty(socket: socketio.Socket, partyId: string) {
@@ -47,7 +55,7 @@ export async function joinParty(socket: socketio.Socket, partyId: string) {
 
         socket.emit('party:joined', classToClass(party));
     } catch (err) {
-        socket.emit('party:error', 'Falha ao adicionar participante')
+        socket.emit('party:error', 'Falha ao adicionar participante');
     }
 }
 
@@ -72,19 +80,26 @@ export async function partyChangeOwner(
 
         io.to(partyId).emit('party:updated', classToClass(party));
     } catch (err) {
-        socket.emit('party:error', 'Falha ao alterar controle da reunião')
+        socket.emit('party:error', 'Falha ao alterar controle da reunião');
     }
 }
 
-export async function playerReady(io: socketio.Server, partyId: string, url: string, socket: socketio.Socket) {
+export async function playerReady(
+    io: socketio.Server,
+    partyId: string,
+    url: string,
+    socket: socketio.Socket,
+) {
     try {
         const video = await container
             .resolve(setPartyUrlService)
             .execute({ partyId, url });
 
+        container.resolve(SetMetadataService).execute({ videoId: video.id });
+
         io.to(partyId).emit('player:ready', classToClass(video));
     } catch (err) {
-        socket.emit('party:error', 'Falha ao adicionar video')
+        socket.emit('party:error', 'Falha ao adicionar video');
     }
 }
 
@@ -137,6 +152,6 @@ export async function peerReady(
 
         io.to(partyId).emit('party:updated', classToClass(party));
     } catch (err) {
-        socket.emit('party:error', 'Falha ao adicionar à chamada')
+        socket.emit('party:error', 'Falha ao adicionar à chamada');
     }
 }

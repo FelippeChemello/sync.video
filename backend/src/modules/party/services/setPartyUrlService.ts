@@ -12,7 +12,7 @@ interface InterfaceRequestDTO {
 }
 
 @injectable()
-export default class AddParticipantService {
+export default class SetPartyUrlService {
     constructor(
         @inject('PartiesRepository')
         private partyRepository: Repository<Party>,

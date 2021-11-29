@@ -9,6 +9,7 @@ import {useToast} from '../hooks/Toast'
 import { Main, Container } from '../styles/dashboard';
 
 import TopBar from '../components/loggedTopBar';
+import WatchList from '../components/watchList';
 
 export default function Dashboard() {
     const [partyCode, setPartyCode] = useState('');
@@ -54,7 +55,7 @@ export default function Dashboard() {
                     </div>
                 </main>
                 <aside>
-                    TODO
+                    <WatchList />
                 </aside>
             </Main>
         </Container>

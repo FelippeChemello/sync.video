@@ -6,6 +6,7 @@ import CreatePartyService from '../../../services/createPartyService';
 import GetPartyDataService from '../../../services/getPartyDataService';
 import AddParticipantService from '../../../services/addParticipantService';
 import AddRoomUrlToUserPartyService from '../../../services/addRoomUrlToUserPartyService';
+import GetWatchedVideosService from '../../../services/getWatchedVideosService';
 
 export default class PartyController {
     public async create(
@@ -58,5 +59,18 @@ export default class PartyController {
             .execute({ userId: +userId, partyId: partyId, socketId: '' });
 
         return response.json(classToClass(party));
+    }
+
+    public async getVideos(
+        request: Request,
+        response: Response,
+    ): Promise<Response> {
+        const { id: userId } = request.user;
+
+        const videosHistory = await container
+            .resolve(GetWatchedVideosService)
+            .execute({ userId: +userId });
+
+        return response.json(classToClass(videosHistory));
     }
 }

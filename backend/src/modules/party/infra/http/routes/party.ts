@@ -9,6 +9,8 @@ const partyController = new PartyController();
 
 partyRouter.post('/', ensureAuthenticated, partyController.create);
 
+partyRouter.get('/videos', ensureAuthenticated, partyController.getVideos);
+
 partyRouter.get(
     '/:id',
     ensureAuthenticated,

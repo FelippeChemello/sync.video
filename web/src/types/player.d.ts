@@ -1,7 +1,7 @@
 interface InterfaceParticipant {
     avatar: string;
     name: string;
-    id: number
+    id: number;
 }
 
 interface SocketData {
@@ -33,4 +33,21 @@ interface InterfaceProgress {
     played: number;
     loadedSeconds: number;
     loaded: number;
+}
+
+interface Video {
+    id: number;
+    partyId: string;
+    url: string;
+    second: number;
+    type: 'url' | 'magnet';
+    isActive: boolean;
+    isPlaying: boolean;
+    playbackRate: number;
+    createdAt: Date;
+    updatedAt: Date;
+    title: string;
+    description: string;
+    uploadedAt: string;
+    thumbnail: string;
 }

@@ -45,3 +45,12 @@ Authorization: Bearer {{token}}
 GET {{baseUrl}}/party/b41e68bc-6b93-47bc-aded-2855c070d29b
 Content-Type: application/json
 Authorization: Bearer {{token}}
+
+### test
+
+GET https://api.apify.com/v2/actor-tasks/vOyjz7XZevjbSmlNF/run-sync-get-dataset-items?token=y2zkrKkqbBNjPxxuEwidwCWwb
+Content-Type: application/json
+
+{
+    "url": "https://www.youtube.com/watch?v=8LcIzIPk0iE"
+}

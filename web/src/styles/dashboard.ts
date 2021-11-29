@@ -11,7 +11,7 @@ export const Main = styled.div`
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: space-around;
     flex: 1;
     width: 100%;
     background-color: #fff;
@@ -27,6 +27,7 @@ export const Main = styled.div`
         text-align: left;
         margin-left: 4rem;
         gap: 1rem;
+
         div {
             h1 {
                 font-style: normal;
@@ -89,44 +90,10 @@ export const Main = styled.div`
 
     aside {
         flex: 1;
+        width: 100%;
+        height: 100%;
         display: flex;
-        justify-content: center;
-        align-items: center;
-
-        div {
-            display: flex;
-            flex-direction: column;
-            width: 24rem;
-
-            img {
-                width: 100%;
-            }
-
-            div::before {
-                content: ' ';
-                position: absolute;
-                width: 100%;
-                height: 4rem;
-                z-index: -1;
-                background-color: #718096;
-                opacity: 0.9;
-                border-radius: 3rem;
-            }
-
-            div {
-                top: -3rem;
-                position: relative;
-                z-index: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-
-                p {
-                    text-align: center;
-                    margin: 0;
-                }
-            }
-        }
+        justify-content: end;
     }
 
     @media (max-width: 1024px) {

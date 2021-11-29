@@ -42,11 +42,21 @@ export default class Video {
     @Column()
     playbackRate: number;
 
+    @Column()
+    title: string;
+
+    @Column()
+    description: string;
+
+    @Column()
+    thumbnail: string;
+
+    @Column()
+    uploadedAt: string;
+
     @CreateDateColumn()
-    @Exclude()
     createdAt: Date;
 
     @UpdateDateColumn()
-    @Exclude()
     updatedAt: Date;
 }
