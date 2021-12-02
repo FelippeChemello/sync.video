@@ -64,18 +64,23 @@ export default function Party({ partyId }: Props) {
 
         socketAddListener('party:updated', (party: InterfaceParty) => {
             setParty(party);
-        })
+        });
     }, [socketConnected, partyId, addToast]);
 
     useEffect(() => {
-        console.log(party)
+        console.log(party);
 
         if (!party) return;
 
-        const {ownerId} = party
+        const { ownerId } = party;
 
-        const peerId = user.id === ownerId ? 'local' : party.partiesUsersRelationship.find(relationship => relationship.user.id === ownerId).peerId
-        setOwnerPeerId(peerId)
+        const peerId =
+            user.id === ownerId
+                ? 'local'
+                : party.partiesUsersRelationship.find(
+                      relationship => relationship.user.id === ownerId,
+                  ).peerId;
+        setOwnerPeerId(peerId);
 
         if (ownerId === user.id) {
             setSocketMode('active');
@@ -85,7 +90,6 @@ export default function Party({ partyId }: Props) {
     }, [party]);
 
     if (!party) return <Loading />;
-
 
     return (
         <Container>
@@ -103,7 +107,7 @@ export default function Party({ partyId }: Props) {
                 />
             </main>
             <aside>
-                <VideoConference partyId={party.id} roomUrl={party.roomUrl} ownerPeerId={ownerPeerId} />
+                {/* <VideoConference partyId={party.id} roomUrl={party.roomUrl} ownerPeerId={ownerPeerId} /> */}
             </aside>
         </Container>
     );

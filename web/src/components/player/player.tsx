@@ -10,6 +10,7 @@ import ReactPlayer from 'react-player';
 import styled from 'styled-components';
 
 import { useSocketIo } from '../../hooks/Authenticated/SocketIo';
+import WatchList from '../watchList';
 
 import SeekBar from './Seekbar';
 import VolumeBar from './Volumebar';
@@ -126,6 +127,17 @@ const SeekBarContainer = styled.div`
     height: 100%;
 `;
 
+const Modal = styled.div<{ isOpen: boolean }>`
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: #00000050;
+    display: ${({ isOpen }) => (isOpen ? 'flex' : 'none')};
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+`;
+
 interface PlayerProps {
     partyId: string;
     url?: string;
@@ -140,6 +152,8 @@ export default function Player({
     videoId: videoIdOnLoadPartyData,
 }: PlayerProps) {
     const playerRef = useRef<ReactPlayer>(null);
+    const modalRef = useRef<HTMLDivElement>(null);
+    const [isModalWatchListOpen, setIsModalWatchListOpen] = useState(false);
     const [url, setUrl] = useState<string>(playingUrl);
     const [videoId, setVideoId] = useState<number>(videoIdOnLoadPartyData || 0);
     const [duration, setDuration] = useState(0);
@@ -232,14 +246,29 @@ export default function Player({
         });
     };
 
+    const closeModal = event => {
+        if (modalRef.current.contains(event.target)) return;
+
+        setIsModalWatchListOpen(false);
+    };
+
     return (
         <Container id="player">
+            <Modal isOpen={isModalWatchListOpen} onClick={closeModal}>
+                <WatchList
+                    ref={modalRef}
+                    onSelect={url => {
+                        setUrl(url);
+                        setIsModalWatchListOpen(false);
+                    }}
+                />
+            </Modal>
             <TopBar>
                 <Url>
                     {socketMode === 'active' ? (
                         <MdOpenInBrowser
                             width="16"
-                            // TODO: On Click open modal and upload file via p2p
+                            onClick={() => setIsModalWatchListOpen(true)}
                         />
                     ) : (
                         <MdOndemandVideo width="16" />
@@ -250,7 +279,7 @@ export default function Player({
                         onChange={e => setUrl(e.target.value)}
                         placeholder={
                             socketMode === 'active'
-                                ? 'Insira um URL de video ou clique no ícone para selecionar um video seu'
+                                ? 'Insira um link de vídeo ou clique no ícone para enviar um vídeo'
                                 : 'Aguardando controlador da sala adicionar video'
                         }
                         disabled={socketMode === 'passive'}
@@ -326,7 +355,7 @@ export default function Player({
                         volume={volume}
                         isSeeking={isSeeking}
                     />
-                </VolumeContainer>                
+                </VolumeContainer>
                 <OptionButton>
                     <BsFullscreen />
                 </OptionButton>

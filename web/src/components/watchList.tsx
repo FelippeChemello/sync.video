@@ -1,5 +1,12 @@
-import { useState, useEffect, ChangeEvent, useCallback } from 'react';
-import styled from 'styled-components';
+import {
+    useState,
+    useEffect,
+    ChangeEvent,
+    useCallback,
+    useMemo,
+    forwardRef,
+} from 'react';
+import styled, { css } from 'styled-components';
 import Uppy from '@uppy/core';
 import { DragDrop } from '@uppy/react';
 import XhrUpload from '@uppy/xhr-upload';
@@ -14,7 +21,7 @@ import Separator from './separator';
 const Container = styled.div`
     display: flex;
     width: 100%;
-    height: 100%;
+    /* height: 100%; */
     align-items: center;
     flex-direction: column;
     border-radius: 1rem;
@@ -106,7 +113,7 @@ const Content = styled.div`
     }
 `;
 
-const Video = styled.div`
+const Video = styled.div<{ isClickable: boolean }>`
     display: flex;
     width: 100%;
     max-height: 100px;
@@ -115,6 +122,38 @@ const Video = styled.div`
     padding: 0.5rem;
     border-radius: 1rem;
     gap: 1rem;
+    position: relative;
+
+    ${({ isClickable }) =>
+        isClickable &&
+        css`
+            cursor: pointer;
+
+            &:hover {
+                background-color: #ffffff20;
+            }
+
+            &:hover:before {
+                opacity: 1;
+            }
+
+            &:before {
+                content: 'Clique para reproduzir';
+                z-index: 999;
+                border-radius: 1rem;
+                background-color: #000000;
+                color: #fff;
+                font-size: 13px;
+                padding: 10px;
+                box-sizing: border-box;
+                position: absolute;
+                right: 1%;
+                bottom: 10%;
+                width: 150px;
+                opacity: 0;
+                transition: all 0.4s ease;
+            }
+        `}
 
     img {
         height: 100%;
@@ -135,11 +174,15 @@ const Video = styled.div`
         h3 {
             font-size: 1.2rem;
             margin: 0.3rem 0;
+            text-overflow: ellipsis;
+            overflow-x: hidden;
         }
 
         p {
             font-size: 0.9rem;
             margin: 0.3rem 0;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
     }
 `;
@@ -198,15 +241,23 @@ const UploadLabel = styled.label<{
     }
 `;
 
-export default function WatchList() {
-    const [active, setActive] = useState<'history' | 'files'>('files');
+type Props = {
+    onSelect?: (url: string) => void;
+    ref?: React.Ref<HTMLDivElement>;
+};
+
+function WatchList({ onSelect }: Props, ref: React.Ref<HTMLDivElement>) {
+    const [active, setActive] = useState<'history' | 'files'>('history');
     const [videos, setVideos] = useState<Video[]>([]);
     const [files, setFiles] = useState<VideoFile[]>([]);
     const [inputFileName, setInputFileName] = useState('');
     const [uploadPercentage, setUploadPercentage] = useState(0);
 
     const { addToast } = useToast();
-    const { token } = useAuth();
+
+    const isEnabledClick = useMemo(() => {
+        return typeof onSelect === 'function';
+    }, [onSelect]);
 
     useEffect(() => {
         api.get('/party/videos')
@@ -229,7 +280,7 @@ export default function WatchList() {
                 const videos = response.data;
 
                 for (const video of videos) {
-                    video.thumbnail = `api/thumbnail?url=${video.url}`;
+                    video.thumbnail = `${process.env.NEXT_PUBLIC_APP_URL}/api/thumbnail?url=${video.url}`;
                 }
 
                 setFiles(videos);
@@ -304,7 +355,7 @@ export default function WatchList() {
     };
 
     return (
-        <Container>
+        <Container ref={ref}>
             <Header>
                 <button
                     className={active === 'history' ? 'active' : ''}
@@ -322,7 +373,13 @@ export default function WatchList() {
             <Content>
                 {active === 'history' &&
                     videos.map(video => (
-                        <Video key={video.id}>
+                        <Video
+                            key={video.id}
+                            isClickable={isEnabledClick}
+                            onClick={() =>
+                                isEnabledClick && onSelect(video.url)
+                            }
+                        >
                             <img
                                 src={
                                     video.thumbnail ||
@@ -352,7 +409,14 @@ export default function WatchList() {
                             <>
                                 <Separator text="ou" color="#ddd" />
                                 {files.map(video => (
-                                    <Video key={video.id}>
+                                    <Video
+                                        key={video.id}
+                                        isClickable={isEnabledClick}
+                                        onClick={() =>
+                                            isEnabledClick &&
+                                            onSelect(video.url)
+                                        }
+                                    >
                                         <img
                                             src={
                                                 video.thumbnail ||
@@ -375,3 +439,5 @@ export default function WatchList() {
         </Container>
     );
 }
+
+export default forwardRef(WatchList);

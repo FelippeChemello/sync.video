@@ -4,7 +4,7 @@ import Router from 'next/router';
 import { parseCookies } from 'nookies';
 
 import api from '../services/api';
-import {useToast} from '../hooks/Toast'
+import { useToast } from '../hooks/Toast';
 
 import { Main, Container } from '../styles/dashboard';
 
@@ -13,8 +13,8 @@ import WatchList from '../components/watchList';
 
 export default function Dashboard() {
     const [partyCode, setPartyCode] = useState('');
-    
-    const {addToast} = useToast()
+
+    const { addToast } = useToast();
 
     const createParty = useCallback(async () => {
         try {
@@ -24,13 +24,13 @@ export default function Dashboard() {
 
             Router.push(`/party/${partyId}`);
         } catch (err) {
-            addToast({ title: 'Falha ao criar reunião', type: 'error' })
+            addToast({ title: 'Falha ao criar reunião', type: 'error' });
         }
     }, []);
 
     const accessParty = event => {
         Router.push(`/party/${partyCode}`);
-    }   
+    };
 
     return (
         <Container>
@@ -38,9 +38,16 @@ export default function Dashboard() {
             <Main>
                 <main>
                     <div>
-                        <h1>Sincronize áudio e video com seus amigos automaticamente.</h1>
+                        <h1>
+                            Sincronize áudio e video com seus amigos
+                            automaticamente.
+                        </h1>
                         <h2>
-                            Fornecemos uma <strong>sincronia perfeita </strong> entre todos os participantes conectados, além de <strong>video-chamada simultânea</strong>. Desfrute da <strong>melhor qualidade</strong> em seus videos, filmes e séries.
+                            Fornecemos uma <strong>sincronia perfeita </strong>{' '}
+                            entre todos os participantes conectados, além de{' '}
+                            <strong>video-chamada simultânea</strong>. Desfrute
+                            da <strong>melhor qualidade</strong> em seus videos,
+                            filmes e séries.
                         </h2>
                     </div>
                     <div>
@@ -49,9 +56,7 @@ export default function Dashboard() {
                             placeholder="Digite o código da reunião"
                             onChange={event => setPartyCode(event.target.value)}
                         ></input>
-                        <button onClick={accessParty}>
-                            Participar
-                        </button>
+                        <button onClick={accessParty}>Participar</button>
                     </div>
                 </main>
                 <aside>
