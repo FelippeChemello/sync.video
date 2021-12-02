@@ -18,9 +18,11 @@ export default class DisconnectUserFromPartyService {
     public async execute({
         socketId,
     }: InterfaceRequestDTO): Promise<PartiesUsersRelationship> {
-        const socketData = await this.partiesUsersRelationshipRepository.findOne({
-            where: { socketId },
-        });
+        const socketData =
+            await this.partiesUsersRelationshipRepository.findOne({
+                where: { socketId },
+                relations: ['party', 'user', 'party.partiesUsersRelationship'],
+            });
 
         if (!socketData) {
             throw new AppError('Failed to get socket data');
