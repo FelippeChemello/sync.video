@@ -1,10 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent, useCallback } from 'react';
 import styled from 'styled-components';
-import Image from 'next/image';
+import Uppy from '@uppy/core';
+import { DragDrop } from '@uppy/react';
+import XhrUpload from '@uppy/xhr-upload';
 
 import api from '../services/api';
 
 import { useToast } from '../hooks/Toast';
+import { useAuth } from '../hooks/Auth';
+import { parseCookies } from 'nookies';
+import Separator from './separator';
 
 const Container = styled.div`
     display: flex;
@@ -104,7 +109,8 @@ const Content = styled.div`
 const Video = styled.div`
     display: flex;
     width: 100%;
-    height: 150px;
+    max-height: 100px;
+    min-height: 100px;
     background-color: #ffffff10;
     padding: 0.5rem;
     border-radius: 1rem;
@@ -115,6 +121,7 @@ const Video = styled.div`
         aspect-ratio: 4/3;
         max-width: 120px;
         border-radius: 1rem;
+        object-fit: cover;
     }
 
     div {
@@ -137,11 +144,69 @@ const Video = styled.div`
     }
 `;
 
+const UploadLabel = styled.label<{
+    filename?: string;
+    buttonMessage: string | number;
+}>`
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    height: 2.5rem;
+    pointer-events: ${props => (props.filename ? 'none' : 'auto')};
+
+    input {
+        display: none;
+    }
+
+    span {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        height: 2.5rem;
+        padding: 0.5rem 1rem;
+        line-height: 1.5;
+        color: #555;
+        background-color: #fff;
+        border: 0.075rem solid #ddd;
+        border-radius: 0.5rem;
+
+        &:before {
+            position: absolute;
+            top: -0.075rem;
+            right: -0.075rem;
+            bottom: -0.075rem;
+            display: block;
+            padding: 0.5rem 1rem;
+            line-height: 1.5;
+            color: #555;
+            background-color: #eee;
+            border: 0.075rem solid #ddd;
+            border-radius: 0 0.25rem 0.25rem 0;
+            content: '${props =>
+                typeof props.buttonMessage === 'number'
+                    ? `Carregando - ${props.buttonMessage}%`
+                    : props.buttonMessage}';
+        }
+
+        &:after {
+            content: '${props =>
+                props.filename
+                    ? props.filename
+                    : 'Realize o upload de um arquivo'}';
+        }
+    }
+`;
+
 export default function WatchList() {
-    const [active, setActive] = useState<'history' | 'files'>('history');
+    const [active, setActive] = useState<'history' | 'files'>('files');
     const [videos, setVideos] = useState<Video[]>([]);
+    const [files, setFiles] = useState<VideoFile[]>([]);
+    const [inputFileName, setInputFileName] = useState('');
+    const [uploadPercentage, setUploadPercentage] = useState(0);
 
     const { addToast } = useToast();
+    const { token } = useAuth();
 
     useEffect(() => {
         api.get('/party/videos')
@@ -154,7 +219,89 @@ export default function WatchList() {
                     type: 'error',
                 });
             });
+
+        updateFiles();
     }, []);
+
+    const updateFiles = useCallback(() => {
+        api.get('/file')
+            .then(response => {
+                const videos = response.data;
+
+                for (const video of videos) {
+                    video.thumbnail = `api/thumbnail?url=${video.url}`;
+                }
+
+                setFiles(videos);
+            })
+            .catch(() =>
+                addToast({
+                    title: 'Erro ao carregar seus arquivos',
+                    type: 'error',
+                }),
+            );
+    }, []);
+
+    const handleInputFile = async (event: ChangeEvent<HTMLInputElement>) => {
+        try {
+            if (!event.target.files) return;
+
+            if (event.target.files.length > 1) {
+                addToast({
+                    title: 'Número máximo de arquivos excedido',
+                    description: 'Somente é possível enviar um arquivo por vez',
+                    type: 'error',
+                });
+                return;
+            }
+
+            console.log(event.target.files);
+
+            if (!event.target.files[0].type.match(/video\/*/)) {
+                addToast({
+                    title: 'Formato de arquivo inválido',
+                    description:
+                        'Somente é possível enviar arquivos do tipo MP4',
+                    type: 'error',
+                });
+                return;
+            }
+
+            const file = event.target.files[0];
+
+            setInputFileName(file.name);
+            setUploadPercentage(0);
+
+            const data = new FormData();
+            data.append('file', file);
+            data.append('title', file.name);
+            data.append(
+                'description',
+                `Video enviado em ${new Date().toLocaleDateString('pt-br')}`,
+            );
+
+            await api.post('/file', data, {
+                onUploadProgress: event => {
+                    const percentage = Math.round(
+                        (event.loaded * 100) / event.total,
+                    );
+
+                    setUploadPercentage(percentage);
+                },
+            });
+
+            updateFiles();
+            setUploadPercentage(undefined);
+            setInputFileName(undefined);
+        } catch (error) {
+            addToast({
+                type: 'error',
+                title: 'Erro ao enviar arquivo',
+                description: 'Tente novamente mais tarde',
+            });
+            console.error(error);
+        }
+    };
 
     return (
         <Container>
@@ -188,7 +335,42 @@ export default function WatchList() {
                             </div>
                         </Video>
                     ))}
-                {active === 'files' && <div>Meus arquivos</div>}
+                {active === 'files' && (
+                    <>
+                        <UploadLabel
+                            filename={inputFileName}
+                            buttonMessage={
+                                uploadPercentage
+                                    ? uploadPercentage
+                                    : 'Escolher arquivo'
+                            }
+                        >
+                            <input type="file" onChange={handleInputFile} />
+                            <span></span>
+                        </UploadLabel>
+                        {files.length >= 1 ? (
+                            <>
+                                <Separator text="ou" color="#ddd" />
+                                {files.map(video => (
+                                    <Video key={video.id}>
+                                        <img
+                                            src={
+                                                video.thumbnail ||
+                                                '/assets/video-fallback.png'
+                                            }
+                                        />
+                                        <div>
+                                            <h3>{video.title || video.url}</h3>
+                                            <p>{video.description}</p>
+                                        </div>
+                                    </Video>
+                                ))}
+                            </>
+                        ) : (
+                            <></>
+                        )}
+                    </>
+                )}
             </Content>
         </Container>
     );

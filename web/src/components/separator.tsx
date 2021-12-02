@@ -10,7 +10,8 @@ const Div = styled.div`
     display: flex;
     align-items: center;
     text-align: center;
-    width: 80%;
+    width: 100%;
+    padding: 0 10%;
     margin: ${(props: DivProps) => (props.distance ? props.distance : 0)}px 0;
 
     &::before,

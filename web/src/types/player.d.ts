@@ -51,3 +51,17 @@ interface Video {
     uploadedAt: string;
     thumbnail: string;
 }
+
+interface VideoFile {
+    userId: number;
+    title: string;
+    description: string;
+    fileName: string;
+    isAvailable: boolean;
+    expiresAt: Date;
+    id: number;
+    createdAt: Date;
+    updatedAt: Date;
+    url: string;
+    thumbnail?: string;
+}

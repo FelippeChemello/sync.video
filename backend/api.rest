@@ -21,8 +21,8 @@ POST {{baseUrl}}/sessions
 Content-Type: application/json
 
 {
-    "email": "felippe@codestack.me",
-    "password": "123456"
+    "email": "felippechemello@yahoo.com",
+    "password": "12345678"
 }
 
 ### Get info from authenticated user
@@ -46,11 +46,23 @@ GET {{baseUrl}}/party/b41e68bc-6b93-47bc-aded-2855c070d29b
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
-### test
+### upload file
 
-GET https://api.apify.com/v2/actor-tasks/vOyjz7XZevjbSmlNF/run-sync-get-dataset-items?token=y2zkrKkqbBNjPxxuEwidwCWwb
-Content-Type: application/json
+POST {{baseUrl}}/file
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer {{token}}
 
-{
-    "url": "https://www.youtube.com/watch?v=8LcIzIPk0iE"
-}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+title
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+description
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="blah.mp4"
+Content-Type: video/mp4
+
+< ./tmp/test.mp4
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
