@@ -107,7 +107,11 @@ export default function Party({ partyId }: Props) {
                 />
             </main>
             <aside>
-                {/* <VideoConference partyId={party.id} roomUrl={party.roomUrl} ownerPeerId={ownerPeerId} /> */}
+                <VideoConference
+                    partyId={party.id}
+                    roomUrl={party.roomUrl}
+                    ownerPeerId={ownerPeerId}
+                />
             </aside>
         </Container>
     );

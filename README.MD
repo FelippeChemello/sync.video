@@ -13,7 +13,6 @@
 
 -   Opção de sincronizar por play/pause ou playback speed
 -   Criar planos Free e Premium
--   Criar Chat
 -   Clientes: Site e Extensão Chrome (https://medium.com/reactbrasil/como-criar-uma-extens%C3%A3o-para-o-chrome-utilizando-react-60282e534009)
 -   Criar 404
 -   Easter egg: Tetris multiplayer (https://www.youtube.com/watch?v=RoRlXxeozbQ) - Icone <MdVideogameAsset />
@@ -51,10 +50,8 @@
 
 Anotações:
 
--   Fonte Noto Sans Foi editada através do https://www.glyphrstudio.com/online/ para remover a barra do centro do 0
--   Devemos remover o listener do socket para atualiza-lo, caso não remova, quando o componente for recarregado irá adicionar mais um listener para o mesmo evento gerando um loop (https://stackoverflow.com/a/32266619)
--   https://medium.com/geekculture/how-to-create-a-video-chat-with-react-typescript-and-webrtc-8a70f6159cdc
--   Para deixar a camera mais fluida foi alterado o método de inferência de pessoa (para construção de mascara) do bodypix para mediapipe
+-   Criar cron para remover arquivos de videos antigos
+-   Criar forgot password
 
 TODO in future: 
 - Add playbackrate option to player

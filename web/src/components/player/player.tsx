@@ -280,7 +280,7 @@ export default function Player({
                         placeholder={
                             socketMode === 'active'
                                 ? 'Insira um link de vídeo ou clique no ícone para enviar um vídeo'
-                                : 'Aguardando controlador da sala adicionar video'
+                                : 'Aguardando o anfitrião da sala adicionar video'
                         }
                         disabled={socketMode === 'passive'}
                         readOnly={socketMode === 'passive'}
