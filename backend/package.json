@@ -23,8 +23,9 @@
         "dev:server": "ts-node-dev --transpile-only ./src/shared/infra/http/server.ts",
         "dev:db": "docker start mysql_sync || docker run -d --name mysql_sync --net=host -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=syncvideo -e MYSQL_USER=admin -e MYSQL_PASSWORD=admin mysql:5.7",
         "dev": "yarn dev:db && yarn migration:run && yarn dev:server",
-        "preprod": "./node_modules/.bin/typeorm migration:run",
-        "prod": "tsc && node ./dist/server.js",
+        "build": "tsc",
+        "prestart": "typeorm migration:run -f ./src/config/ormconfig.js",
+        "start": "node ./dist/shared/infra/http/server.js",
         "migration:run": "yarn typeorm migration:run",
         "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -f ./src/config/ormconfig.js"
     },

@@ -9,7 +9,7 @@
         "strictPropertyInitialization": false,
         "baseUrl": "./src",
         "allowJs": true,
-        "types": ["node", "@types/jest"],
+        "types": ["node"],
         "esModuleInterop": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
