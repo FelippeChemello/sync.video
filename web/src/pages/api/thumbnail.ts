@@ -1,28 +1,30 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import screenshot from './_lib/screenshot';
+import axios from 'axios';
 
-export default async function thumbnail(
+export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse,
 ) {
-    const url = String(req.query.url);
+    res.setHeader('Content-Type', 'image/png');
 
     try {
-        const file = await screenshot(url);
-        res.setHeader('Content-Type', `image/png`);
+        const url = String(req.query.url);
+
+        const image = await axios.get(
+            `https://screenshotter-mocha.vercel.app/screenshot?url=${url}&selector=video`,
+        );
+
         res.setHeader(
             'Cache-Control',
-            `public, immutable, no-transform, s-maxage=31536000, max-age=31536000`,
+            'public, immutable, no-transform, max-age=31536000',
         );
-        res.statusCode = 200;
-        res.end(file);
+        res.end(image);
     } catch (error) {
-        const response = await fetch(
+        const fallbackImage = await axios.get(
             `${process.env.NEXT_PUBLIC_APP_URL}/assets/video-fallback.png`,
+            { responseType: 'arraybuffer' },
         );
 
-        const fallbackImage = await response.arrayBuffer();
-
-        res.end(fallbackImage);
+        res.end(Buffer.from(fallbackImage.data, 'binary'));
     }
 }
