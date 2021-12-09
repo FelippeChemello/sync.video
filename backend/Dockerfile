@@ -4,7 +4,6 @@ LABEL org.opencontainers.image.source https://github.com/felippechemello/sync.vi
 
 WORKDIR /usr/src/app
 
-# Install dependencies
 COPY package*.json ./
 COPY yarn.lock ./
 RUN yarn
@@ -14,8 +13,6 @@ COPY ./ ./
 RUN yarn build
 
 FROM node:16-alpine
-
-ARG NODE_ENV
 
 WORKDIR /usr/src/app
 

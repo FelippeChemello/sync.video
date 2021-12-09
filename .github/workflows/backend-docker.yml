@@ -1,55 +1,53 @@
 name: Build and Publish Backend Docker Image
 
 on:
-    push: 
-        branches: 
+    push:
+        branches:
             - main
     workflow_dispatch:
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
+    REGISTRY: ghcr.io
+    IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push-image:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    build-and-push-image:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v2
 
-      - name: Set Github Secrets as Env variables
-        env: 
-            secrets: ${{ toJson(secrets) }}  
-        run: |
-            for variable in $(echo $secrets | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" ); do
-                echo $variable
-                export $variable
-            done   
+            - name: Set Github Secrets as Env variables
+              id: dotenv
+              uses: felippechemello/github-secrets-to-dotenv@0.1.2
+              with:
+                  secrets: ${{ toJson(secrets) }}
+            
+            - name: Copy .env to backend
+              run: cp ${{ steps.dotenv.outputs.filePath }} backend/.env
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.PACKAGE_GITHUB_TOKEN }}
+            - name: Log in to the Container registry
+              uses: docker/login-action@v1
+              with:
+                  registry: ${{ env.REGISTRY }}
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.PACKAGE_GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            - name: Extract metadata (tags, labels) for Docker
+              id: meta
+              uses: docker/metadata-action@v3
+              with:
+                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action/@v2
-        with:
-          context: ./backend
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          secret-files: |
-            "MY_SECRET=./backend/.env.example"
-    
+            - name: Build and push Docker image
+              uses: docker/build-push-action/@v2
+              with:
+                  context: ./backend
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  secret-files: |
+                      "MY_SECRET=./backend/.env.example"
