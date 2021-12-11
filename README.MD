@@ -52,6 +52,9 @@ Anotações:
 
 -   Criar cron para remover arquivos de videos antigos
 -   Criar forgot password
+-   Desabilitar botão de login e cadastro quando clicar
+-   Corrigir sync pausando
+-   Servidor crash quando desconecta inesperadamente um usuário
 
 TODO in future: 
 - Add playbackrate option to player

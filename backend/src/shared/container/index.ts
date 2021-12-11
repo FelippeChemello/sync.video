@@ -6,6 +6,7 @@ import Party from '../../modules/party/infra/database/entities/Party';
 import PartiesUsersRelationship from '../../modules/party/infra/database/entities/PartiesUsersRelationship';
 import Video from '../../modules/party/infra/database/entities/Video';
 import File from '../../modules/file/infra/database/entities/File'
+import UserToken from '../../modules/users/infra/database/entities/UserToken';
 
 export default function registerRepositories() {
     const UsersRepository = getRepository(User);
@@ -27,4 +28,7 @@ export default function registerRepositories() {
 
     const FilesRepository = getRepository(File);
     container.registerInstance('FilesRepository', FilesRepository);
+
+    const UserTokensRepository = getRepository(UserToken);
+    container.registerInstance('UserTokensRepository', UserTokensRepository);
 }

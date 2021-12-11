@@ -110,6 +110,27 @@ export const AnimationContainer = styled.div`
         }
     }
 
+    > button {
+        background-color: #fff;
+        color: #3485ff;
+        border: none;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: calc(100% - 1rem);
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+
+        &:hover {
+            background-color: #fff;
+            color: ${shade(0.2, '#3485ff')};
+            border: none;
+        }
+    }
+
     hr {
         width: 100%;
         margin: 0 3rem;

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Link from 'next/link';
 import { parseCookies } from 'nookies';
 import { GetServerSidePropsContext } from 'next';
@@ -34,25 +35,31 @@ const SignUp: React.FC = () => {
     } = useForm<FormInputs>();
     const { signIn } = useAuth();
     const { addToast } = useToast();
+    const [loading, setLoading] = useState(false);
 
     const formSubmit = handleSubmit(async ({ email, name, password }) => {
+        setLoading(true);
+
         try {
             const avatar = await convertFileToBase64(await getAvatar(name));
             console.log(avatar);
 
             await api.post('users', { email, name, password, avatar });
             addToast({
-                title: "Cadastro realizado com sucesso",
-                description: "Efetuando login",
+                title: 'Cadastro realizado com sucesso',
+                description: 'Efetuando login',
                 type: 'success',
             });
             await signIn({ email, password });
         } catch (err) {
             addToast({
-                title: "Erro ao criar conta",
-                description: "Verifique os dados digitados",
+                title: 'Erro ao criar conta',
+                description:
+                    'Verifique os dados digitados, talvez você já tenha uma conta',
                 type: 'error',
             });
+        } finally {
+            setLoading(false);
         }
     });
 
@@ -74,18 +81,14 @@ const SignUp: React.FC = () => {
                             name="name"
                             {...register('name', { required: true })}
                         />
-                        {<span>&nbsp; {errors.name && "Nome inválido"}</span>}
+                        {<span>&nbsp; {errors.name && 'Nome inválido'}</span>}
 
                         <input
                             placeholder="E-mail"
                             name="email"
                             {...register('email', { required: true })}
                         />
-                        {
-                            <span>
-                                &nbsp; {errors.email && "Email inválido"}
-                            </span>
-                        }
+                        {<span>&nbsp; {errors.email && 'Email inválido'}</span>}
 
                         <input
                             type="password"
@@ -99,11 +102,12 @@ const SignUp: React.FC = () => {
                         {
                             <span>
                                 &nbsp;
-                                {errors.password && "Senha não possui 8 caracteres"}
+                                {errors.password &&
+                                    'Senha não possui 8 caracteres'}
                             </span>
                         }
 
-                        <button type="submit">
+                        <button type="submit" disabled={loading}>
                             <FiLogIn />
                             Cadastrar
                         </button>

@@ -1,6 +1,7 @@
 @baseUrl = http://localhost:3001
 # @baseUrl = http://sync-video.api.codestack.me
 @token = {{authenticateUser.response.body.token}}
+@recoveryPasswordToken = {{forgotPassword.response.body.token}}
 
 ### Create a new user
 # @name createUser
@@ -24,6 +25,27 @@ Content-Type: application/json
 {
     "email": "felippe@codestack.me",
     "password": "123456"
+}
+
+### Forgot password
+# @name forgotPassword
+
+POST {{baseUrl}}/sessions/forgot-password
+Content-Type: application/json
+
+{
+    "email": "felippe@codestack.me"
+}
+
+### Reset password
+# @name resetPassword
+
+POST {{baseUrl}}/sessions/reset-password
+Content-Type: application/json
+
+{
+    "token": "{{recoveryPasswordToken}}",
+    "password": "123456789"
 }
 
 ### Get info from authenticated user

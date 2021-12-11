@@ -5,3 +5,5 @@ declare namespace Express {
         };
     }
 }
+
+declare module '*.hbs';

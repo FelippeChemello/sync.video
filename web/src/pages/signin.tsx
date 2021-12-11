@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { GetServerSidePropsContext } from 'next';
 import { parseCookies } from 'nookies';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FiLogIn } from 'react-icons/fi';
 
@@ -17,6 +18,7 @@ import {
     Background,
     AnimationContainer,
 } from '../styles/signin';
+import { Description } from '@headlessui/react/dist/components/description/description';
 
 interface FormInputs {
     email: string;
@@ -29,20 +31,71 @@ interface SignInFormData {
 }
 
 const SignIn: React.FC = () => {
-    const { register, handleSubmit } = useForm<FormInputs>();
+    const { register, handleSubmit, getValues } = useForm<FormInputs>();
     const { signIn } = useAuth();
     const { addToast } = useToast();
+    const [loading, setLoading] = useState(false);
 
     const formSubmit = handleSubmit(
         async ({ email, password }: SignInFormData) => {
+            setLoading(true);
+
             try {
                 await signIn({ email, password });
-                addToast({ title: 'Login efetuado', description: 'Redirecionando para página inicial', type: 'success' });
+                addToast({
+                    title: 'Login efetuado',
+                    description: 'Redirecionando para página inicial',
+                    type: 'success',
+                });
             } catch (err) {
-                addToast({ title: 'Erro ao efetuar login', description: 'Verifique os dados digitados', type: 'error' });
+                addToast({
+                    title: 'Erro ao efetuar login',
+                    description: 'Verifique os dados digitados',
+                    type: 'error',
+                });
+            } finally {
+                setLoading(false);
             }
         },
     );
+
+    const forgotPassword = async () => {
+        setLoading(true);
+        const email = getValues().email;
+
+        if (!email) {
+            addToast({
+                title: 'Email não informado',
+                description: 'Por favor, informe o email ' + email,
+                type: 'error',
+            });
+            return;
+        }
+
+        try {
+            addToast({
+                title: 'Recuperação de senha',
+                description: `Recuperando senha, aguarde...`,
+                type: 'info',
+            });
+
+            await api.post('/sessions/forgot-password', { email });
+
+            addToast({
+                title: 'Recuperação de senha',
+                description: `E-mail enviado com sucesso para ${email}`,
+                type: 'success',
+            });
+        } catch (err) {
+            addToast({
+                title: 'Erro ao recuperar senha',
+                description: 'Verifique os dados digitados',
+                type: 'error',
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <Container>
@@ -69,16 +122,15 @@ const SignIn: React.FC = () => {
                             {...register('password', { required: true })}
                         />
 
-                        <button type="submit">
+                        <button type="submit" disabled={loading}>
                             <FiLogIn />
                             Entrar
                         </button>
-
-                        <Link href="/forgot-password">
-                            {/* TODO: create forgot-password page */}
-                            Esqueci minha senha
-                        </Link>
                     </form>
+
+                    <button onClick={forgotPassword} disabled={loading}>
+                        Esqueci minha senha
+                    </button>
 
                     <Separator text="ou" color="#a1b2cd" distance={32} />
 
@@ -88,26 +140,6 @@ const SignIn: React.FC = () => {
             <Background />
         </Container>
     );
-};
-
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-    try {
-        const { ['sync.video-token']: token } = parseCookies(ctx);
-
-        if (!token) {
-            throw new Error('Token not found');
-        }
-
-        api.defaults.headers['Authorization'] = `Bearer ${token}`;
-
-        await api.get('users');
-
-        return { redirect: { destination: '/dashboard', permanent: false } };
-    } catch (err) {
-        return {
-            props: {},
-        };
-    }
 };
 
 export default SignIn;

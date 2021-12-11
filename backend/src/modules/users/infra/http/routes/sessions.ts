@@ -17,4 +17,21 @@ sessionsRouter.post(
     sessionsController.create,
 );
 
+sessionsRouter.post(
+    '/forgot-password',
+    celebrate({ [Segments.BODY]: { email: Joi.string().email().required() } }),
+    sessionsController.forgotPassword,
+);
+
+sessionsRouter.post(
+    '/reset-password',
+    celebrate({
+        [Segments.BODY]: {
+            token: Joi.string().required(),
+            password: Joi.string().required().min(8),
+        },
+    }),
+    sessionsController.resetPassword,
+);
+
 export default sessionsRouter;
