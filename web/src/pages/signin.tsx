@@ -83,8 +83,15 @@ const SignIn: React.FC = () => {
 
             addToast({
                 title: 'Recuperação de senha',
-                description: `E-mail enviado com sucesso para ${email}`,
+                description: `E-mail enviado com sucesso para ${email}.`,
                 type: 'success',
+            });
+
+            addToast({
+                title: 'Por favor, aguarde',
+                description:
+                    'Aguarde até 30 minutos para o recebimento do e-mail.',
+                type: 'info',
             });
         } catch (err) {
             addToast({
