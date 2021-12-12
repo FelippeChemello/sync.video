@@ -16,22 +16,28 @@ export async function disconnect(
     socketId: string,
     socket: socketio.Socket,
 ) {
-    console.log('client disconnected', socketId);
+    try {
+        console.log('client disconnected', socketId);
 
-    const socketData = await container
-        .resolve(DisconnectUserFromPartyService)
-        .execute({ socketId });
+        const socketData = await container
+            .resolve(DisconnectUserFromPartyService)
+            .execute({ socketId });
 
-    const socketDisconnectedWasOwner =
-        socketData?.party?.ownerId === socketData.user.id; // TODO: testar isso
-    if (!socketDisconnectedWasOwner) return;
+        const socketDisconnectedWasOwner =
+            socketData?.party?.ownerId === socketData.user.id; // TODO: testar isso
+        if (!socketDisconnectedWasOwner) return;
 
-    const newOwner = socketData.party.partiesUsersRelationship.find(
-        relationship => relationship.connected,
-    );
-    if (!newOwner) return;
+        const newOwner = socketData.party.partiesUsersRelationship.find(
+            relationship => relationship.connected,
+        );
+        if (!newOwner) return;
 
-    partyChangeOwner(io, socket, socketData.party.id, newOwner.peerId);
+        partyChangeOwner(io, socket, socketData.party.id, newOwner.peerId);
+    } catch (err) {
+        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        console.log(err);
+        console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    }
 }
 
 export async function joinParty(socket: socketio.Socket, partyId: string) {
