@@ -8,7 +8,7 @@ import AppError from '../../../shared/errors/AppError';
 
 interface InterfaceRequestDTO {
     partyId: string;
-    newOwnerId: string;
+    newOwnerId: number;
     userId: number;
 }
 
@@ -47,7 +47,7 @@ export default class setPartyOwnerService {
         }
 
         const isNewOwnerOnParty = party.partiesUsersRelationship.find(
-            partyUser => partyUser.peerId === newOwnerId,
+            partyUser => partyUser.userId === newOwnerId,
         );
 
         if (!isNewOwnerOnParty) {

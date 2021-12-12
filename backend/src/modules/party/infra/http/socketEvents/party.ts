@@ -10,28 +10,42 @@ import setVideoStateService from '../../../services/setVideoStateService';
 import addPeerIdToUserPartyService from '../../../services/addPeerIdToUserPartyService';
 import DisconnectUserFromPartyService from '../../../services/disconnectUserFromPartyService';
 import SetMetadataService from '../../../services/setMetadataService';
+import SetNewOwnerInRoomWithoutOwner from '../../../services/setNewOwnerInRoomWithoutOwner';
 
 export async function disconnect(
     io: socketio.Server,
     socketId: string,
     socket: socketio.Socket,
 ) {
-    console.log('client disconnected', socketId);
+    try {
+        const socketData = await container
+            .resolve(DisconnectUserFromPartyService)
+            .execute({ socketId });
 
-    const socketData = await container
-        .resolve(DisconnectUserFromPartyService)
-        .execute({ socketId });
+        console.log('client disconnected', socketData.userId);
 
-    const socketDisconnectedWasOwner =
-        socketData?.party?.ownerId === socketData.user.id; // TODO: testar isso
-    if (!socketDisconnectedWasOwner) return;
+        const socketDisconnectedWasOwner =
+            socketData?.party?.ownerId === socketData.user.id;
+        if (!socketDisconnectedWasOwner) {
+            console.log("user wasn't owner, so we're not changing owner");
+            return;
+        }
 
-    const newOwner = socketData.party.partiesUsersRelationship.find(
-        relationship => relationship.connected,
-    );
-    if (!newOwner) return;
+        const newOwner = await container
+            .resolve(SetNewOwnerInRoomWithoutOwner)
+            .execute({
+                lastOwnerId: socketData.userId,
+                partyId: socketData.party.id,
+            });
 
-    partyChangeOwner(io, socket, socketData.party.id, newOwner.peerId);
+        const party = await container
+            .resolve(GetPartyDataService)
+            .execute({ userId: newOwner.userId, partyId: newOwner.partyId });
+
+        io.to(socketData.party.id).emit('party:updated', classToClass(party));
+    } catch (err) {
+        console.log(err);
+    }
 }
 
 export async function joinParty(socket: socketio.Socket, partyId: string) {
@@ -59,11 +73,12 @@ export async function joinParty(socket: socketio.Socket, partyId: string) {
     }
 }
 
+// TODO: Change to userId
 export async function partyChangeOwner(
     io: socketio.Server,
     socket: socketio.Socket,
     partyId: string,
-    newOwnerId: string,
+    newOwnerId: number,
 ) {
     try {
         const { sub: userId } = socket.decodedToken;
@@ -80,6 +95,7 @@ export async function partyChangeOwner(
 
         io.to(partyId).emit('party:updated', classToClass(party));
     } catch (err) {
+        console.log(err);
         socket.emit('party:error', 'Falha ao alterar controle da reunião');
     }
 }

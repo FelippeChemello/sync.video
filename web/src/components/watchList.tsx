@@ -306,7 +306,6 @@ function WatchList({ onSelect }: Props, ref: React.Ref<HTMLDivElement>) {
                 return;
             }
 
-            console.log(event.target.files);
 
             if (!event.target.files[0].type.match(/video\/*/)) {
                 addToast({

@@ -80,6 +80,7 @@ export default class AddParticipantService {
         const userPartyRelationship =
             this.partiesUsersRelationshipRepository.create({
                 user: userToBeAdded,
+                socketId,
                 party,
                 connected: true,
             });

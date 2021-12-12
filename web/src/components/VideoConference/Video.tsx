@@ -1,16 +1,31 @@
 import { useRef, useMemo, useEffect } from 'react';
 import { DailyCall, DailyTrackState } from '@daily-co/daily-js';
 import styled from 'styled-components';
-import {RiVipCrownFill, RiVipCrownLine} from 'react-icons/ri'
+import { RiVipCrownFill, RiVipCrownLine } from 'react-icons/ri';
 
 import { useSocketIo } from '../../hooks/Authenticated/SocketIo';
 
-const Container = styled.div<{ isLocal: boolean, quantityOfParticipants: number }>`
-    min-height: calc(100%/${props => props.quantityOfParticipants > 6 ? 6 : props.quantityOfParticipants} - 1rem);
-    max-height: calc(100%/${props => props.quantityOfParticipants > 6 ? 6 : props.quantityOfParticipants});
+const Container = styled.div<{
+    isLocal: boolean;
+    quantityOfParticipants: number;
+}>`
+    min-height: calc(
+        100% /
+            ${props =>
+                props.quantityOfParticipants > 6
+                    ? 6
+                    : props.quantityOfParticipants} - 1rem
+    );
+    max-height: calc(
+        100% /
+            ${props =>
+                props.quantityOfParticipants > 6
+                    ? 6
+                    : props.quantityOfParticipants}
+    );
     width: fit-content;
     max-width: 100%;
-    flex:1;
+    flex: 1;
     aspect-ratio: 12/9;
     border-radius: 4px;
     position: relative;
@@ -20,18 +35,19 @@ const Container = styled.div<{ isLocal: boolean, quantityOfParticipants: number 
         top: 0;
         bottom: 0;
         width: 100%;
-        height: 100%; 
+        height: 100%;
         overflow: hidden;
         border-radius: 4px;
 
         video {
             display: block;
-            min-width: 100%; 
-            min-height: 100%; 
+            min-width: 100%;
+            min-height: 100%;
             height: 100%;
             position: absolute;
             left: 50%;
-            transform: translateX(-50%) ${({ isLocal }) => (isLocal ? 'scale(-1, 1)' : '')};
+            transform: translateX(-50%)
+                ${({ isLocal }) => (isLocal ? 'scale(-1, 1)' : '')};
         }
     }
 
@@ -39,7 +55,7 @@ const Container = styled.div<{ isLocal: boolean, quantityOfParticipants: number 
         position: absolute;
         width: 32px;
         height: 32px;
-        color: red; 
+        color: red;
     }
 
     audio {
@@ -69,12 +85,18 @@ const CornerMessage = styled.p`
 function getTrackUnavailableMessage(kind: string, trackState: DailyTrackState) {
     if (!trackState) return;
     switch (trackState.state) {
-        case 'blocked': return `${kind} não encontrado`;
-        case 'off': return `${kind} desligado`;
-        case 'sendable': return `${kind} não recebido`;
-        case 'loading': return `${kind} carregando`;
-        case 'interrupted': return `${kind} com erro`;
-        case 'playable': return null;
+        case 'blocked':
+            return `${kind} não encontrado`;
+        case 'off':
+            return `${kind} desligado`;
+        case 'sendable':
+            return `${kind} não recebido`;
+        case 'loading':
+            return `${kind} carregando`;
+        case 'interrupted':
+            return `${kind} com erro`;
+        case 'playable':
+            return null;
     }
 }
 
@@ -84,8 +106,7 @@ type VideoProps = {
     isLocal: boolean;
     quantityOfParticipants: number;
     isOwner: boolean;
-    ownerPeerId: string;
-    peerId: string;
+    userId: number;
     partyId: string;
 };
 
@@ -94,15 +115,14 @@ export default function Video({
     isLocal,
     videoTrackState,
     quantityOfParticipants,
-    isOwner, 
-    ownerPeerId,
-    peerId,
-    partyId
+    isOwner,
+    userId,
+    partyId,
 }: VideoProps) {
     const videoEl = useRef(null);
     const audioEl = useRef(null);
 
-    const {socketEmit} = useSocketIo()
+    const { socketEmit, socketMode } = useSocketIo();
 
     const videoTrack = useMemo(() => {
         return videoTrackState && videoTrackState.state === 'playable'
@@ -150,27 +170,34 @@ export default function Video({
         }
     };
 
-    const transferOwner = (toPeerId: string) => {
-        socketEmit('party:changeOwner', {partyId, newOwnerId: toPeerId})
-    }
+    const transferOwner = (toUserId: number) => {
+        socketEmit('party:changeOwner', { partyId, newOwnerId: toUserId });
+    };
 
     return (
-        <Container isLocal={isLocal} quantityOfParticipants={quantityOfParticipants}>
+        <Container
+            isLocal={isLocal}
+            quantityOfParticipants={quantityOfParticipants}
+        >
             <Background />
-
             <div className="video-wrapper">
-                {videoTrack && <video autoPlay muted playsInline ref={videoEl} />}
+                {videoTrack && (
+                    <video autoPlay muted playsInline ref={videoEl} />
+                )}
             </div>
             {!isLocal && audioTrack && (
                 <audio autoPlay playsInline ref={audioEl} />
             )}
 
-            {ownerPeerId === 'local' ? (isOwner ? (
-                <RiVipCrownFill />
+            {socketMode === 'active' ? (
+                isOwner ? (
+                    <RiVipCrownFill />
+                ) : (
+                    <RiVipCrownLine onClick={() => transferOwner(userId)} />
+                )
             ) : (
-                <RiVipCrownLine onClick={() => transferOwner(peerId)} />
-            )) : (isOwner && <RiVipCrownFill />)}
-            
+                isOwner && <RiVipCrownFill />
+            )}
 
             {getUnavailableMessage()}
         </Container>

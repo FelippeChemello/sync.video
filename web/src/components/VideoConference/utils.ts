@@ -26,7 +26,8 @@ export type CallState = {
         videoTrackState: DailyTrackState;
         audioTrackState: DailyTrackState;
         isOwner: boolean;
-        ownerPeerId: string;
+        name: string;
+        userId: number;
     };
 };
 
@@ -35,19 +36,27 @@ export const initialCallItems = {
         videoTrackState: null,
         audioTrackState: null,
         isOwner: false,
-        ownerPeerId: null,
+        name: null,
+        userId: null,
     },
 };
 
-export function getCallItems(participants: DailyParticipantsObject, ownerPeerId: string): CallState {
+export function getCallItems(
+    participants: DailyParticipantsObject,
+    ownerId: number,
+): CallState {
     let callItems = { ...initialCallItems };
 
     Object.entries(participants).forEach(([participantId, participant]) => {
+        const userId = Number(participant.user_name.split(' - ')[1].trim());
+
         callItems[participantId] = {
+            name: participant.user_name.split(' - ')[0].trim(),
+            userId,
             videoTrackState: participant.tracks.video,
             audioTrackState: participant.tracks.audio,
-            isOwner: participantId === ownerPeerId,
-            ownerPeerId
+            isOwner: userId === ownerId,
+            ownerId,
         };
     });
 

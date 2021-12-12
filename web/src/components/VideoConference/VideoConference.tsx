@@ -75,15 +75,14 @@ const VideosContainer = styled.div`
 
 type VideoConferenceProps = {
     partyId: string;
-    ownerPeerId: string;
+    ownerId: number;
     roomUrl?: string;
 };
-
 
 export default function VideoConference({
     partyId,
     roomUrl,
-    ownerPeerId
+    ownerId,
 }: VideoConferenceProps) {
     const [state, setState] = useState<VideoConferenceState>(
         VideoConferenceState.IDLE,
@@ -94,7 +93,7 @@ export default function VideoConference({
     const [callState, setCallState] = useState<CallState>({});
 
     const { addToast } = useToast();
-    const { socketEmit } = useSocketIo();
+    const { socketEmit, socket } = useSocketIo();
     const { user } = useAuth();
 
     useEffect(() => {
@@ -110,12 +109,12 @@ export default function VideoConference({
         addEventListener();
 
         return removeEventListener;
-    }, [callObject]);
+    }, [callObject, ownerId]);
 
     useEffect(() => {
         if (!callObject) return;
 
-        callObject.setUserName(user.name);
+        callObject.setUserName(`${user.name} - ${user.id}`);
     }, [callObject]);
 
     useEffect(() => {
@@ -126,14 +125,18 @@ export default function VideoConference({
 
     useEffect(() => {
         if (state === VideoConferenceState.ERROR) {
-            addToast({title: 'Erro', description: 'Ocorreu um erro desconhecido', type: 'error'});
-            
+            addToast({
+                title: 'Erro',
+                description: 'Ocorreu um erro desconhecido',
+                type: 'error',
+            });
+
             setTimeout(() => {
-                Router.push('/dashboard')
-            }, 1500)
+                Router.push('/dashboard');
+            }, 1500);
             return;
         }
-        
+
         if (state !== VideoConferenceState.JOINED) return;
         const peerId = callObject.participants().local.user_id;
 
@@ -143,7 +146,7 @@ export default function VideoConference({
         });
     }, [state]);
 
-    const addEventListener = useCallback(() => {
+    const addEventListener = () => {
         if (!callObject) return;
 
         handleNewMeetingState();
@@ -164,13 +167,13 @@ export default function VideoConference({
             'participant-left',
         ] as DailyEvent[];
         participantEvents.forEach(event => {
-            callObject.on(event, updateCallState);
+            callObject.on(event, () => updateCallState());
         });
 
         callObject.on('camera-error', handleCameraErrorEvent);
-    }, [callObject]);
+    };
 
-    const removeEventListener = useCallback(() => {
+    const removeEventListener = () => {
         if (!callObject) return;
 
         const meetingEvents = [
@@ -188,11 +191,11 @@ export default function VideoConference({
             'participant-left',
         ] as DailyEvent[];
         participantEvents.forEach(event => {
-            callObject.off(event, updateCallState);
+            callObject.off(event, () => updateCallState());
         });
 
         callObject.off('camera-error', handleCameraErrorEvent);
-    }, [callObject]);
+    };
 
     const handleNewMeetingState = useCallback(() => {
         switch (callObject.meetingState()) {
@@ -212,17 +215,17 @@ export default function VideoConference({
         }
     }, [callObject]);
 
-    const updateCallState = useCallback(async () => {
+    const updateCallState = () => {
         if (!callObject) return;
 
         const participants = callObject.participants();
 
-        setCallState(getCallItems(participants, ownerPeerId));
-    }, [callObject, ownerPeerId]);
+        setCallState(getCallItems(participants, ownerId));
+    };
 
     useEffect(() => {
-        updateCallState()
-    }, [ownerPeerId])
+        updateCallState();
+    }, [ownerId]);
 
     const handleCameraErrorEvent = event => {
         addToast({
@@ -276,10 +279,9 @@ export default function VideoConference({
                     isLocal={isLocal(id)}
                     quantityOfParticipants={quantityOfParticipant}
                     isOwner={callItem.isOwner}
-                    ownerPeerId={callItem.ownerPeerId}
-                    peerId={id}
+                    userId={callItem.userId}
                     partyId={partyId}
-                />                         
+                />
             );
         });
     }, [callState]);
@@ -288,7 +290,7 @@ export default function VideoConference({
         <Container>
             {state === VideoConferenceState.JOINED && (
                 <>
-                    <VideosContainer>{videos}</VideosContainer> 
+                    <VideosContainer>{videos}</VideosContainer>
 
                     <Tray
                         hasNewChatMessage={hasNewChatMessage}

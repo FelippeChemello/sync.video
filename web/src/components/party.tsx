@@ -34,7 +34,7 @@ type Props = {
 
 export default function Party({ partyId }: Props) {
     const [party, setParty] = useState<InterfaceParty>();
-    const [ownerPeerId, setOwnerPeerId] = useState<string>();
+    const [ownerId, setOwnerId] = useState<number>();
 
     const { socketAddListener, socketEmit, socketConnected, setSocketMode } =
         useSocketIo();
@@ -74,13 +74,7 @@ export default function Party({ partyId }: Props) {
 
         const { ownerId } = party;
 
-        const peerId =
-            user.id === ownerId
-                ? 'local'
-                : party.partiesUsersRelationship.find(
-                      relationship => relationship.user.id === ownerId,
-                  ).peerId;
-        setOwnerPeerId(peerId);
+        setOwnerId(ownerId);
 
         if (ownerId === user.id) {
             setSocketMode('active');
@@ -97,7 +91,7 @@ export default function Party({ partyId }: Props) {
                 <Player
                     partyId={party.id}
                     url={
-                        party.videos.filter(video => video.isActive)[0]?.url ||
+                        party.videos?.filter(video => video.isActive)[0]?.url ||
                         ''
                     }
                     currentTime={
@@ -110,7 +104,7 @@ export default function Party({ partyId }: Props) {
                 <VideoConference
                     partyId={party.id}
                     roomUrl={party.roomUrl}
-                    ownerPeerId={ownerPeerId}
+                    ownerId={ownerId}
                 />
             </aside>
         </Container>
