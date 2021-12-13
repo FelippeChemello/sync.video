@@ -159,7 +159,7 @@ export default function Player({
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(0.7);
     const [playbackRate, setPlaybackRate] = useState(1);
-    const [isPlaying, setIsPlaying] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(false);
     const [isSeeking, setIsSeeking] = useState(false);
     const [progress, setProgress] = useState<InterfaceProgress>({
         loaded: 0,
@@ -167,6 +167,8 @@ export default function Player({
         played: 0,
         playedSeconds: 0,
     });
+    const playerSecondsRef = useRef(0);
+    const [isReady, setIsReady] = useState<string>('');
 
     const { socketAddListener, socketMode, socketEmit } = useSocketIo();
 
@@ -183,14 +185,15 @@ export default function Player({
     useEffect(() => {
         socketAddListener(
             'player:ready',
-            ({ second, url, id }: InterfaceVideo) => {
+            async ({ second, url, id }: InterfaceVideo) => {
                 setVideoId(id);
 
                 if (socketMode === 'active') return;
 
                 setUrl(url);
 
-                playerRef.current.seekTo(second);
+                await waitForPlayerReady();
+
                 setDuration(playerRef.current.getDuration());
             },
         );
@@ -207,16 +210,28 @@ export default function Player({
                 setIsPlaying(socketIsPlaying);
                 setPlaybackRate(socketPlaybackRate);
 
-                const diffInSecondsFromOwner = Math.abs(
-                    Math.floor(second - progress.playedSeconds),
-                );
+                const diffInSecondsFromOwner =
+                    second - (playerSecondsRef.current || 0);
 
-                if (diffInSecondsFromOwner >= 1) {
+                if (Math.abs(diffInSecondsFromOwner) > 3) {
                     playerRef.current.seekTo(second);
+                    return;
+                }
+
+                if (diffInSecondsFromOwner >= 0) {
+                    setPlaybackRate(1.05);
+                } else {
+                    setPlaybackRate(0.95);
                 }
             },
         );
-    }, [socketMode]);
+    }, [socketMode, playerRef]);
+
+    const waitForPlayerReady = async () => {
+        while (isReady !== url) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    };
 
     const handlePlayPause = (toState: 'play' | 'pause') => {
         if (socketMode === 'passive') return;
@@ -234,6 +249,8 @@ export default function Player({
 
     const handleProgress = (progressData: InterfaceProgress) => {
         setProgress(progressData);
+
+        playerSecondsRef.current = progressData.playedSeconds;
 
         if (socketMode === 'passive') return;
 
@@ -298,10 +315,12 @@ export default function Player({
                 onProgress={handleProgress}
                 onStart={() => handlePlayPause('play')}
                 onReady={() => {
+                    setIsReady(url);
+
                     if (socketMode === 'passive') return;
 
                     socketEmit('player:ready', {
-                        url, // TODO: test it with file
+                        url,
                         partyId,
                     });
                 }}

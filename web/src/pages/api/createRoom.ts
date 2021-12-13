@@ -15,7 +15,7 @@ export default async function handler(
         const response = await api.post('/rooms', {
             properties: {
                 ...req.body,
-                exp: Math.round(Date.now() / 1000 + 5 * 60), // 5 minutes
+                exp: Math.round(Date.now() / 1000 + 15 * 60), // 5 minutes TODO 6 hours
             },
         });
 

@@ -29,19 +29,17 @@ function startSocketIo() {
             await joinParty(socket, data.partyId);
         });
 
-
-        // TODO: corrigier para usar userId
-        // socket.on(
-        //     'party:changeOwner',
-        //     async (data: { partyId: string; newOwnerId: string }) => {
-        //         await partyChangeOwner(
-        //             io,
-        //             socket,
-        //             data.partyId,
-        //             data.newOwnerId,
-        //         );
-        //     },
-        // );
+        socket.on(
+            'party:changeOwner',
+            async (data: { partyId: string; newOwnerId: number }) => {
+                await partyChangeOwner(
+                    io,
+                    socket,
+                    data.partyId,
+                    data.newOwnerId,
+                );
+            },
+        );
 
         socket.on('player:ready', (data: { partyId: string; url: string }) => {
             playerReady(io, data.partyId, data.url, socket);

@@ -42,7 +42,7 @@ export default class setPartyOwnerService {
             partyUser => partyUser.user.id === userId,
         );
 
-        if (!isUserOnParty || isUserOnParty.party.ownerId !== userId) {
+        if (!isUserOnParty || party.ownerId !== userId) {
             throw new AppError('User is not on Party or is not Owner');
         }
 

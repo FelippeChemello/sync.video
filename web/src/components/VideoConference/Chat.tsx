@@ -149,9 +149,13 @@ export default function Chat({
 
         if (!event) return;
 
-        const sender = participants[event.fromId].user_name
-            ? participants[event.fromId].user_name
-            : participants[event.fromId].user_id;
+        const sender = (
+            participants[event.fromId].user_name
+                ? participants[event.fromId].user_name
+                : participants[event.fromId].user_id
+        )
+            .split(' - ')[0]
+            .trim();
 
         setChatHistory([
             ...chatHistory,
@@ -201,7 +205,10 @@ export default function Chat({
     useEffect(() => {
         if (!participants) return;
 
-        setMe(participants.local.user_name ?? participants.local.user_id);
+        setMe(
+            participants.local.user_name.split(' - ')[0].trim() ??
+                participants.local.user_id,
+        );
     }, [participants]);
 
     const addEventListeners = useCallback(() => {
@@ -213,6 +220,20 @@ export default function Chat({
     }, [callObject, handleChatMessage]);
 
     useEffect(() => {}, [chatHistory]);
+
+    useEffect(() => {
+        const inviteUrl = window.location.href;
+
+        setChatHistory([
+            ...chatHistory,
+            {
+                sender: 'Sistema',
+                message: `Compartilhe o seguinte link para convidar para essa reunião: \n${inviteUrl}`,
+            },
+        ]);
+
+        setHasNewMessage(true)
+    }, []);
 
     return (
         <ChatContainer isOpen={isChatOpen}>
@@ -233,6 +254,9 @@ export default function Chat({
                     placeholder="Digite sua mensagem"
                     value={inputValue}
                     onChange={event => setInputValue(event.target.value)}
+                    onKeyPress={event =>
+                        event.key === 'Enter' && handleSubmit(event)
+                    }
                 />
                 <BiSend onClick={handleSubmit}>Enviar</BiSend>
             </Input>
