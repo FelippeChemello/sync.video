@@ -23,6 +23,11 @@ const Container = styled.div`
     justify-content: center;
     align-items: center;
     position: relative;
+
+    @media (max-width: 1024px) {
+        height: 100vw;
+        max-height: 100%;
+    }
 `;
 
 const TopBar = styled.div`
@@ -169,8 +174,19 @@ export default function Player({
     });
     const playerSecondsRef = useRef(0);
     const [isReady, setIsReady] = useState<string>('');
+    const [isMobile, setIsMobile] = useState(false);
 
     const { socketAddListener, socketMode, socketEmit } = useSocketIo();
+
+    useEffect(() => {
+        const isMobileDevice = window?.navigator?.userAgent.match(
+            /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i,
+        );
+
+        console.log('ismobile', !!isMobileDevice);
+
+        setIsMobile(!!isMobileDevice);
+    }, []);
 
     useEffect(() => {
         document.querySelectorAll('video');
@@ -278,6 +294,7 @@ export default function Player({
                         setUrl(url);
                         setIsModalWatchListOpen(false);
                     }}
+                    onClose={() => setIsModalWatchListOpen(false)}
                 />
             </Modal>
             <TopBar>
@@ -296,8 +313,8 @@ export default function Player({
                         onChange={e => setUrl(e.target.value)}
                         placeholder={
                             socketMode === 'active'
-                                ? 'Insira um link de vídeo ou clique no ícone para enviar um vídeo'
-                                : 'Aguardando o anfitrião da sala adicionar video'
+                                ? 'Insira um link de vídeo'
+                                : 'Aguardando o anfitrião...'
                         }
                         disabled={socketMode === 'passive'}
                         readOnly={socketMode === 'passive'}
@@ -366,18 +383,18 @@ export default function Player({
                         pause={() => setIsPlaying(false)}
                         isPlaying={isPlaying}
                         setIsSeeking={setIsSeeking}
+                        isMobile={isMobile}
                     />
                 </SeekBarContainer>
-                <VolumeContainer>
-                    <VolumeBar
-                        setVolume={setVolume}
-                        volume={volume}
-                        isSeeking={isSeeking}
-                    />
-                </VolumeContainer>
-                <OptionButton>
-                    <BsFullscreen />
-                </OptionButton>
+                {!isMobile && (
+                    <VolumeContainer>
+                        <VolumeBar
+                            setVolume={setVolume}
+                            volume={volume}
+                            isSeeking={isSeeking}
+                        />
+                    </VolumeContainer>
+                )}
             </Controls>
         </Container>
     );

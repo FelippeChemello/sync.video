@@ -71,6 +71,10 @@ const VideosContainer = styled.div`
         background-color: #ccc;
         border-radius: 6px;
     }
+
+    @media (max-width: 1024px) {
+        flex-direction: row !important;
+    }
 `;
 
 type VideoConferenceProps = {

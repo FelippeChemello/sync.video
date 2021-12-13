@@ -82,6 +82,7 @@ interface InterfaceSeekBarProps {
     duration: number;
     currentTime: number;
     isPlaying: boolean;
+    isMobile: boolean;
     setIsSeeking: (isSeeking: boolean) => void;
     seekTo: (time: number, type: 'seconds' | 'fraction') => void;
     play: () => void;
@@ -98,6 +99,7 @@ export default function SeekBar({
     play,
     isPlaying,
     setIsSeeking,
+    isMobile,
 }: InterfaceSeekBarProps) {
     const barRef = useRef<HTMLDivElement>(null);
     const [barWidth, setBarWidth] = useState(0);
@@ -233,7 +235,11 @@ export default function SeekBar({
     );
 
     return (
-        <Container>
+        <Container
+            style={{
+                paddingRight: isMobile ? '1rem' : '0',
+            }}
+        >
             <p>
                 {formatSecondsToMinutes(currentTime)} / {formattedDuration}
             </p>

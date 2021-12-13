@@ -52,11 +52,15 @@ export default function Dashboard() {
                     </div>
                     <div>
                         <button onClick={createParty}>Criar reunião</button>
-                        <input
-                            placeholder="Digite o código da reunião"
-                            onChange={event => setPartyCode(event.target.value)}
-                        ></input>
-                        <button onClick={accessParty}>Participar</button>
+                        <div>
+                            <input
+                                placeholder="Código da reunião"
+                                onChange={event =>
+                                    setPartyCode(event.target.value)
+                                }
+                            ></input>
+                            <button onClick={accessParty}>Participar</button>
+                        </div>
                     </div>
                 </main>
                 <aside>

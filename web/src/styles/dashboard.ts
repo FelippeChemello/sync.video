@@ -61,29 +61,35 @@ export const Main = styled.div`
                 cursor: pointer;
             }
 
-            input {
-                outline: none;
-                background-color: #fff;
-                color: #000;
-                border: 1px solid #1a73e8;
-                padding: 1rem 0.7rem;
-                border-radius: 0.3rem;
-                font-size: 1.1rem;
-                margin-right: 0.5rem;
-            }
+            > div {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
 
-            input::placeholder {
-                color: ${shade(0.2, '#1a73e8')};
-                opacity: 0.5;
-            }
+                input {
+                    outline: none;
+                    background-color: #fff;
+                    color: #000;
+                    border: 1px solid #1a73e8;
+                    padding: 1rem 0.7rem;
+                    border-radius: 0.3rem;
+                    font-size: 1.1rem;
+                    margin-right: 0.5rem;
+                }
 
-            input + button {
-                outline: none;
-                background-color: transparent;
-                color: #1a73e8;
-                border: none;
-                font-size: 1.1rem;
-                cursor: pointer;
+                input::placeholder {
+                    color: ${shade(0.2, '#1a73e8')};
+                    opacity: 0.5;
+                }
+
+                button {
+                    outline: none;
+                    background-color: transparent;
+                    color: #1a73e8;
+                    border: none;
+                    font-size: 1.1rem;
+                    cursor: pointer;
+                }
             }
         }
     }
@@ -96,6 +102,12 @@ export const Main = styled.div`
         justify-content: end;
     }
 
+    @media (min-width: 1024px) and (max-width: 1630px) {
+        aside {
+            width: 50vw;
+        }
+    }
+
     @media (max-width: 1024px) {
         flex-direction: column;
 
@@ -105,27 +117,80 @@ export const Main = styled.div`
             h1 {
                 font-size: 2rem !important;
             }
+
+            div + div {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+            }
         }
 
         aside {
-            div {
-                img {
-                    width: 80%;
-                }
-            }
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 730px) {
         main {
+            width: 100vw;
+            padding: 1.5rem;
+
             h1,
             h2 {
                 text-align: center;
             }
+
+            div {
+                flex-direction: column;
+
+                button {
+                    width: 100% !important;
+                    outline: none;
+                    background-color: #1a73e8;
+                    color: #fff;
+                    border: 1px solid #1a73e8;
+                    padding: 1rem 0.7rem;
+                    border-radius: 0.3rem;
+                    font-size: 1.1rem;
+                    margin-right: 1rem;
+                    cursor: pointer;
+                    margin-bottom: 1rem;
+                }
+
+                > div {
+                    flex-direction: row;
+                    width: 100%;
+
+                    input {
+                        outline: none;
+                        background-color: #fff;
+                        color: #000;
+                        border: 1px solid #1a73e8;
+                        padding: 1rem 0.7rem;
+                        border-radius: 0.3rem;
+                        font-size: 1.1rem;
+                        margin-right: 0.5rem;
+                        min-width: 70%;
+                    }
+
+                    button {
+                        width: 30%;
+                        margin: 0;
+                        outline: none;
+                        background-color: transparent;
+                        color: #1a73e8;
+                        border: none;
+                        font-size: 1.1rem;
+                        cursor: pointer;
+                    }
+                }
+            }
         }
 
         aside {
-            display: none;
+            width: 100vw;
         }
     }
 `;

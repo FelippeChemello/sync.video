@@ -206,8 +206,8 @@ export default function Chat({
         if (!participants) return;
 
         setMe(
-            participants.local.user_name.split(' - ')[0].trim() ??
-                participants.local.user_id,
+            participants?.local?.user_name?.split(' - ')[0].trim() ||
+                participants?.local?.user_id,
         );
     }, [participants]);
 

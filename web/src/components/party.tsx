@@ -26,6 +26,25 @@ export const Container = styled.div`
         height: 100vh;
         background-color: #2d333b;
     }
+
+    @media (max-width: 1024px) {
+        flex-direction: column;
+
+        main {
+            width: 100vw;
+            height: 100vw;
+            max-height: 50vh;
+            flex: initial;
+        }
+
+        aside {
+            flex: 1;
+            min-height: 50vh;
+            width: 100vw;
+            min-width: 100vw;
+            max-width: 100vw;
+        }
+    }
 `;
 
 type Props = {
@@ -95,7 +114,7 @@ export default function Party({ partyId }: Props) {
                         ''
                     }
                     currentTime={
-                        party.videos.filter(video => video.isActive)[0]
+                        party.videos?.filter(video => video.isActive)[0]
                             ?.second || 0
                     }
                 />

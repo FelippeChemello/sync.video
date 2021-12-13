@@ -7,9 +7,7 @@ import {
     forwardRef,
 } from 'react';
 import styled, { css } from 'styled-components';
-import Uppy from '@uppy/core';
-import { DragDrop } from '@uppy/react';
-import XhrUpload from '@uppy/xhr-upload';
+import { FiX } from 'react-icons/fi';
 
 import api from '../services/api';
 
@@ -21,64 +19,79 @@ import Separator from './separator';
 const Container = styled.div`
     display: flex;
     width: 100%;
-    /* height: 100%; */
+    padding: 1rem;
     align-items: center;
     flex-direction: column;
     border-radius: 1rem;
     max-width: 800px;
+
+    @media (max-width: 1024px) {
+        height: 100%;
+    }
 `;
 
 const Header = styled.div`
-    height: 50px;
+    min-height: 50px;
     background-color: #141e2b;
     width: 100%;
     display: flex;
     border-radius: 1rem 1rem 0 0;
     padding: 0.25rem 1rem 0;
     gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
 
-    button {
-        background-color: transparent;
-        padding: 0 1rem;
-        height: 100%;
-        height: 100%;
-        font-size: 0.9rem;
-        text-decoration: none;
-        color: white;
-        cursor: pointer;
-        outline: none;
-        border: none;
-        position: relative;
+    div {
+        button {
+            background-color: transparent;
+            padding: 0 1rem;
+            min-height: calc(50px - 0.25rem);
+            height: 100%;
+            font-size: 0.9rem;
+            text-decoration: none;
+            color: white;
+            cursor: pointer;
+            outline: none;
+            border: none;
+            position: relative;
 
-        &.active {
-            background-color: #283443;
-            border-radius: 1rem 1rem 0 0;
+            &.active {
+                background-color: #283443;
+                border-radius: 1rem 1rem 0 0;
 
-            &:before {
-                content: '';
-                position: absolute;
-                height: 16px;
-                width: 16px;
-                background: none;
-                left: -16px;
-                bottom: 0;
-                border-radius: 0 0 100% 0;
-                transform: rotate(0deg);
-                box-shadow: 4px 4px 0px 3px #283443;
-            }
-            &:after {
-                content: '';
-                position: absolute;
-                height: 16px;
-                width: 16px;
-                background: none;
-                right: -16px;
-                bottom: 0;
-                border-radius: 0 0 0 100%;
-                transform: rotate(0deg);
-                box-shadow: -4px 4px 0px 3px #283443;
+                &:before {
+                    content: '';
+                    position: absolute;
+                    height: 16px;
+                    width: 16px;
+                    background: none;
+                    left: -16px;
+                    bottom: 0;
+                    border-radius: 0 0 100% 0;
+                    transform: rotate(0deg);
+                    box-shadow: 4px 4px 0px 3px #283443;
+                }
+                &:after {
+                    content: '';
+                    position: absolute;
+                    height: 16px;
+                    width: 16px;
+                    background: none;
+                    right: -16px;
+                    bottom: 0;
+                    border-radius: 0 0 0 100%;
+                    transform: rotate(0deg);
+                    box-shadow: -4px 4px 0px 3px #283443;
+                }
             }
         }
+    }
+
+    svg {
+        color: #fff;
+        height: 57%;
+        width: auto;
+        cursor: pointer;
     }
 `;
 
@@ -170,19 +183,44 @@ const Video = styled.div<{ isClickable: boolean }>`
         justify-content: space-between;
         color: #dddfe1;
         text-overflow: ellipsis;
+        min-width: 0;
 
         h3 {
             font-size: 1.2rem;
             margin: 0.3rem 0;
             text-overflow: ellipsis;
+            white-space: nowrap;
             overflow-x: hidden;
+            width: 100%;
         }
 
         p {
             font-size: 0.9rem;
             margin: 0.3rem 0;
             text-overflow: ellipsis;
-            overflow: hidden;
+            white-space: nowrap;
+            overflow-x: hidden;
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 1024px) {
+        max-height: 70px;
+        min-height: 70px;
+        border-radius: 0.5rem;
+
+        img {
+            border-radius: 0.5rem;
+        }
+
+        div {
+            h3 {
+                font-size: 1rem;
+            }
+
+            p {
+                font-size: 0.8rem;
+            }
         }
     }
 `;
@@ -243,10 +281,14 @@ const UploadLabel = styled.label<{
 
 type Props = {
     onSelect?: (url: string) => void;
+    onClose?: () => void;
     ref?: React.Ref<HTMLDivElement>;
 };
 
-function WatchList({ onSelect }: Props, ref: React.Ref<HTMLDivElement>) {
+function WatchList(
+    { onSelect, onClose }: Props,
+    ref: React.Ref<HTMLDivElement>,
+) {
     const [active, setActive] = useState<'history' | 'files'>('history');
     const [videos, setVideos] = useState<Video[]>([]);
     const [files, setFiles] = useState<VideoFile[]>([]);
@@ -258,6 +300,10 @@ function WatchList({ onSelect }: Props, ref: React.Ref<HTMLDivElement>) {
     const isEnabledClick = useMemo(() => {
         return typeof onSelect === 'function';
     }, [onSelect]);
+
+    const isEnabledClose = useMemo(() => {
+        return typeof onClose === 'function';
+    }, [onClose]);
 
     useEffect(() => {
         api.get('/party/videos')
@@ -305,7 +351,6 @@ function WatchList({ onSelect }: Props, ref: React.Ref<HTMLDivElement>) {
                 });
                 return;
             }
-
 
             if (!event.target.files[0].type.match(/video\/*/)) {
                 addToast({
@@ -356,18 +401,22 @@ function WatchList({ onSelect }: Props, ref: React.Ref<HTMLDivElement>) {
     return (
         <Container ref={ref}>
             <Header>
-                <button
-                    className={active === 'history' ? 'active' : ''}
-                    onClick={() => setActive('history')}
-                >
-                    Histórico
-                </button>
-                <button
-                    className={active === 'files' ? 'active' : ''}
-                    onClick={() => setActive('files')}
-                >
-                    Meus arquivos
-                </button>
+                <div>
+                    <button
+                        className={active === 'history' ? 'active' : ''}
+                        onClick={() => setActive('history')}
+                    >
+                        Histórico
+                    </button>
+                    <button
+                        className={active === 'files' ? 'active' : ''}
+                        onClick={() => setActive('files')}
+                    >
+                        Meus arquivos
+                    </button>
+                </div>
+
+                {isEnabledClose && <FiX onClick={onClose} />}
             </Header>
             <Content>
                 {active === 'history' &&
