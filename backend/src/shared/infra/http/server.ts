@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 import 'express-async-errors';
+import 'newrelic';
 
 import { startServer } from './http';
 import { startSocketIo } from './io';
