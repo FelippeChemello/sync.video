@@ -14,7 +14,7 @@
         "@daily-co/daily-js": "^0.21.0",
         "@headlessui/react": "^1.4.1",
         "@jitsi/web-sdk": "^0.1.0",
-        "@lyno/lib-jitsi-meet": "^2.6173.1",
+        "@lyno/lib-jitsi-meet": "^2.6726.2",
         "@mediapipe/camera_utils": "^0.3.1632432234",
         "@mediapipe/control_utils": "^0.6.1629159505",
         "@mediapipe/drawing_utils": "^0.3.1620248257",
