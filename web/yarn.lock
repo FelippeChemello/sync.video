@@ -1052,10 +1052,10 @@
     "@uppy/utils" "^4.0.3"
     nanoid "^3.1.25"
 
-"@vectorly-io/ai-filters@^1.6.1":
-  version "1.6.1"
-  resolved "https://registry.yarnpkg.com/@vectorly-io/ai-filters/-/ai-filters-1.6.1.tgz#a5293b052ea4ded4341ca67c5e85ab99880dd0e4"
-  integrity sha512-R0Mlh7HcwYhiabi2JW73fBELCuxWZfWKNd9ETxiFcNOoXYMLgKY6ZoIZHAzJzkKo952jQJAJjanE2QrovtxELw==
+"@vectorly-io/ai-filters@^1.6.10":
+  version "1.6.10"
+  resolved "https://registry.yarnpkg.com/@vectorly-io/ai-filters/-/ai-filters-1.6.10.tgz#4e3e4c74e28c77d15fe39de9591a384a622a8840"
+  integrity sha512-JmF7/HffNXBggEMZAq88nDFMTpvUH7/xyRjUYG8e/c4Uguvfc3ItAzLT/kCNLm0EKtQCCdI3b9ZhDGUv+GenNg==
 
 abab@^2.0.3:
   version "2.0.5"

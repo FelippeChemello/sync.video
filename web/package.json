@@ -28,7 +28,7 @@
         "@uppy/dashboard": "^2.1.1",
         "@uppy/react": "^2.1.1",
         "@uppy/xhr-upload": "^2.0.5",
-        "@vectorly-io/ai-filters": "^1.6.1",
+        "@vectorly-io/ai-filters": "^1.6.10",
         "axios": "^0.21.4",
         "chrome-aws-lambda": "^10.1.0",
         "date-fns": "^2.23.0",
